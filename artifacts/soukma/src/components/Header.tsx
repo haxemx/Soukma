@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { ShoppingCart, User as UserIcon, Search, Menu, LogOut, Store, Shield, X } from "lucide-react";
 import { useState } from "react";
+import { useClerk } from "@clerk/clerk-react";
 import { useGetMyProfile, useGetMyCart } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { useClerk } from "@clerk/clerk-react";
 import { loginUrl } from "@/lib/auth";
 
 const NAV = [
@@ -24,19 +24,11 @@ const NAV = [
   { href: "/products?categorySlug=high-tech", label: "High-Tech" },
 ];
 
-function LogoutButton() {
-  const { signOut } = useClerk();
-  return (
-    <button onClick={() => signOut({ redirectUrl: "/" })} data-testid="link-logout" className="flex w-full items-center">
-      <LogOut className="mr-2 h-4 w-4" /> Se déconnecter
-    </button>
-  );
-}
-
 export function Header() {
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const { signOut } = useClerk();
   const profileQ = useGetMyProfile();
   const cartQ = useGetMyCart();
 
@@ -53,6 +45,10 @@ export function Header() {
     } else {
       setLocation(`/products?search=${encodeURIComponent(search.trim())}`);
     }
+  }
+
+  function handleLogout() {
+    signOut({ redirectUrl: "/" });
   }
 
   return (
@@ -148,10 +144,8 @@ export function Header() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <LogoutButton />
-                    <LogOut className="mr-2 h-4 w-4" /> Se déconnecter
-                  </button>
+                <DropdownMenuItem onClick={handleLogout} data-testid="link-logout">
+                  <LogOut className="mr-2 h-4 w-4" /> Se déconnecter
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -197,12 +191,12 @@ export function Header() {
               </Link>
             ))}
             {!isAuth && (
-              <a
+              
                 href={loginUrl()}
                 className="rounded-md px-3 py-2 text-sm font-medium text-primary hover-elevate"
               >
                 Se connecter
-              </button>
+              </a>
             )}
           </nav>
         </div>
