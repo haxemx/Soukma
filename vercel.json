@@ -1,0 +1,8 @@
+{
+  "buildCommand": "pnpm --filter soukma run build",
+  "outputDirectory": "artifacts/soukma/dist",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
