@@ -1,27 +1,37 @@
-# Workspace
+# soukMA — Marketplace marocaine
 
-## Overview
-
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+Modern Moroccan e-commerce marketplace (clothing, appliances, beauty, artisanat) built as a pnpm monorepo.
 
 ## Stack
+- **Frontend** (`artifacts/soukma`): React + Vite, wouter routing, TanStack Query, Tailwind, shadcn/ui. UI in French, MAD currency.
+- **API** (`artifacts/api-server`): Express 5, Drizzle ORM, PostgreSQL, Replit Auth (OIDC).
+- **Shared libs**: `@workspace/api-zod`, `@workspace/api-client-react` (orval generated), `@workspace/db`, `@workspace/replit-auth-web`.
 
-- **Monorepo tool**: pnpm workspaces
-- **Node.js version**: 24
-- **Package manager**: pnpm
-- **TypeScript version**: 5.9
-- **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+## Theme
+Moroccan-modern palette: terracotta primary (HSL 14 75% 48%), atlas teal secondary (184 50% 22%), saffron accent (38 92% 55%). Custom utilities: `.zellige-pattern`, `.moroccan-gradient`, `.atlas-gradient`, `.placeholder-product`.
 
-## Key Commands
+## Features shipped
+- Public: Home, Catalogue, fiche produit, panier, checkout (CMI / CIH Pay / livraison), écran de paiement simulé.
+- Compte: Connexion Replit, mes commandes, détail commande.
+- Vendeur: onboarding, dashboard, produits, commandes (`/vendor/...`).
+- Admin: dashboard, utilisateurs (rôles), commandes, produits (`/admin/...`).
+- Garde-fous: vérification du rôle DB par requête côté API; routes wouter protégées côté front.
 
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `pnpm --filter @workspace/api-server run dev` — run API server locally
+## Conventions importantes
+- **Aucune emoji** dans l'UI (Lucide icons uniquement).
+- **Aucune image produit** par défaut: `imageUrl=null` + commentaire `// REMPLACER ICI` côté seed et `<ProductImage />` affiche une icône Package.
+- **Paiement**: `PaymentMock` simule l'écran bancaire — bloc commenté `// REMPLACER ICI` pour brancher la vraie passerelle CMI (HMAC-SHA512) ou CIH Pay (callback IPN).
+- Méthodes de paiement enum: `cmi | cih_pay | cash_on_delivery`.
 
-See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+## Données de seed
+8 catégories, 12 produits, 1 boutique de démo, attributions de rôles cohérentes.
+
+## Lancer en local
+- `artifacts/api-server: API Server` — Express sur `PORT`, expose `/api/*`.
+- `artifacts/soukma: web` — Vite dev server (base `/soukma/`), proxie `/api` vers l'API server.
+- `artifacts/mockup-sandbox: Component Preview Server` — sandbox de composants.
+
+## Variables d'environnement
+- `DATABASE_URL` (PostgreSQL Replit)
+- `SESSION_SECRET`
+- Replit Auth: variables fournies automatiquement par la plateforme.
