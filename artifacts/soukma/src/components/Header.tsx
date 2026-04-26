@@ -191,7 +191,7 @@ export function Header() {
               </Link>
             ))}
             {!isAuth && (
-              <a
+              
                 href={loginUrl()}
                 className="rounded-md px-3 py-2 text-sm font-medium text-primary hover-elevate"
               >
