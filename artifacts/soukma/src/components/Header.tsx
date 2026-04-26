@@ -14,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { loginUrl } from "@/lib/auth";
 
 const NAV = [
   { href: "/", label: "Accueil" },
@@ -28,7 +27,7 @@ export function Header() {
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const { signOut } = useClerk();
+  const { signOut, openSignIn } = useClerk();
   const profileQ = useGetMyProfile();
   const cartQ = useGetMyCart();
 
@@ -150,9 +149,7 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild variant="default" size="sm" className="hidden md:inline-flex">
-              <a href={loginUrl()} data-testid="link-login">Se connecter</a>
-            </Button>
+            <Button variant="default" size="sm" className="hidden md:inline-flex" onClick={() => openSignIn({})} data-testid="link-login">Se connecter</Button>
           )}
 
           <Button
@@ -191,12 +188,12 @@ export function Header() {
               </Link>
             ))}
             {!isAuth && (
-              <a
-                href={loginUrl()}
+              <button
+                onClick={() => openSignIn({})}
                 className="rounded-md px-3 py-2 text-sm font-medium text-primary hover-elevate"
               >
                 Se connecter
-              </a>
+              </button>
             )}
           </nav>
         </div>
