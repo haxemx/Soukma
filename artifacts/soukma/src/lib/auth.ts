@@ -1,15 +1,11 @@
-import { useClerk } from "@clerk/clerk-react";
+import { appPath } from "./api";
 
 export function loginUrl(returnTo?: string): string {
   const target = returnTo ?? (typeof window !== "undefined" ? window.location.pathname + window.location.search : "/");
-  return `/login?returnTo=${encodeURIComponent(target)}`;
+  const params = new URLSearchParams({ returnTo: target });
+  return `/api/login?${params.toString()}`;
 }
 
 export function logoutUrl(): string {
-  return "/";
-}
-
-export function useLogout() {
-  const { signOut } = useClerk();
-  return () => signOut({ redirectUrl: "/" });
+  return `/api/logout`;
 }

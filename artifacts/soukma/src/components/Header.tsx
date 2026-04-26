@@ -13,8 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { useClerk } from "@clerk/clerk-react";
-import { loginUrl } from "@/lib/auth";
+import { loginUrl, logoutUrl } from "@/lib/auth";
 
 const NAV = [
   { href: "/", label: "Accueil" },
@@ -23,15 +22,6 @@ const NAV = [
   { href: "/products?categorySlug=electromenager", label: "Électroménager" },
   { href: "/products?categorySlug=high-tech", label: "High-Tech" },
 ];
-
-function LogoutButton() {
-  const { signOut } = useClerk();
-  return (
-    <button onClick={() => signOut({ redirectUrl: "/" })} data-testid="link-logout" className="flex w-full items-center">
-      <LogOut className="mr-2 h-4 w-4" /> Se déconnecter
-    </button>
-  );
-}
 
 export function Header() {
   const [, setLocation] = useLocation();
@@ -149,9 +139,9 @@ export function Header() {
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <LogoutButton />
+                  <a href={logoutUrl()} data-testid="link-logout">
                     <LogOut className="mr-2 h-4 w-4" /> Se déconnecter
-                  </button>
+                  </a>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -202,7 +192,7 @@ export function Header() {
                 className="rounded-md px-3 py-2 text-sm font-medium text-primary hover-elevate"
               >
                 Se connecter
-              </button>
+              </a>
             )}
           </nav>
         </div>
