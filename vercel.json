@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm --filter soukma run build",
+  "buildCommand": "pnpm --filter @workspace/soukma run build",
   "outputDirectory": "artifacts/soukma/dist",
   "installCommand": "pnpm install --frozen-lockfile",
   "rewrites": [
