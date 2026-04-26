@@ -1,87 +1,54 @@
-import * as oidc from "openid-client";
+import { clerkMiddleware, getAuth } from "@clerk/express";
 import { type Request, type Response, type NextFunction } from "express";
-import type { AuthUser } from "@workspace/api-zod";
-import {
-  clearSession,
-  getOidcConfig,
-  getSessionId,
-  getSession,
-  updateSession,
-  type SessionData,
-} from "../lib/auth";
+import { getSession, getSessionId } from "../lib/auth";
 
-declare global {
-  namespace Express {
-    interface User extends AuthUser {}
+const IS_LOCAL = process.env.NODE_ENV === "development" && !process.env.CLERK_SECRET_KEY;
 
-    interface Request {
-      isAuthenticated(): this is AuthedRequest;
+// ─── Middleware principal ────────────────────────────────────────────────────
+export const authMiddleware = IS_LOCAL
+  ? localAuthMiddleware
+  : clerkMiddleware();
 
-      user?: User | undefined;
-    }
-
-    export interface AuthedRequest {
-      user: User;
-    }
-  }
-}
-
-async function refreshIfExpired(
-  sid: string,
-  session: SessionData,
-): Promise<SessionData | null> {
-  const now = Math.floor(Date.now() / 1000);
-  if (!session.expires_at || now <= session.expires_at) return session;
-
-  if (!session.refresh_token) return null;
-
-  try {
-    const config = await getOidcConfig();
-    const tokens = await oidc.refreshTokenGrant(
-      config,
-      session.refresh_token,
-    );
-    session.access_token = tokens.access_token;
-    session.refresh_token = tokens.refresh_token ?? session.refresh_token;
-    session.expires_at = tokens.expiresIn()
-      ? now + tokens.expiresIn()!
-      : session.expires_at;
-    await updateSession(sid, session);
-    return session;
-  } catch {
-    return null;
-  }
-}
-
-export async function authMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  req.isAuthenticated = function (this: Request) {
-    return this.user != null;
-  } as Request["isAuthenticated"];
-
+// ─── Mode local : lecture de session depuis la DB ───────────────────────────
+async function localAuthMiddleware(req: Request, res: Response, next: NextFunction) {
   const sid = getSessionId(req);
-  if (!sid) {
-    next();
+  if (sid) {
+    const session = await getSession(sid);
+    if (session) {
+      (req as any).user = session.user;
+      (req as any).isAuthenticated = () => true;
+      return next();
+    }
+  }
+  (req as any).isAuthenticated = () => false;
+  next();
+}
+
+// ─── Mode production : lecture du token Clerk ───────────────────────────────
+export function attachUser(req: Request, res: Response, next: NextFunction) {
+  if (IS_LOCAL) return next();
+
+  const auth = getAuth(req);
+  if (auth.userId) {
+    (req as any).user = {
+      id: auth.userId,
+      email: null,
+      firstName: null,
+      lastName: null,
+      profileImageUrl: null,
+    };
+    (req as any).isAuthenticated = () => true;
+  } else {
+    (req as any).isAuthenticated = () => false;
+  }
+  next();
+}
+
+// ─── Guard : routes protégées ────────────────────────────────────────────────
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!(req as any).isAuthenticated?.()) {
+    res.status(401).json({ error: "Unauthorized" });
     return;
   }
-
-  const session = await getSession(sid);
-  if (!session?.user?.id) {
-    await clearSession(res, sid);
-    next();
-    return;
-  }
-
-  const refreshed = await refreshIfExpired(sid, session);
-  if (!refreshed) {
-    await clearSession(res, sid);
-    next();
-    return;
-  }
-
-  req.user = refreshed.user;
   next();
 }

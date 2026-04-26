@@ -1,10 +1,9 @@
-import * as oidc from "openid-client";
 import { Router, type IRouter, type Request, type Response } from "express";
+import { getAuth, clerkClient } from "@clerk/express";
 import { GetCurrentAuthUserResponse } from "@workspace/api-zod";
 import { db, usersTable } from "@workspace/db";
 import {
   clearSession,
-  getOidcConfig,
   getSessionId,
   createSession,
   SESSION_COOKIE,
@@ -12,35 +11,8 @@ import {
   type SessionData,
 } from "../lib/auth";
 
-const OIDC_COOKIE_TTL = 10 * 60 * 1000;
 const router: IRouter = Router();
-const IS_LOCAL = !process.env.REPL_ID;
-
-function getOrigin(req: Request): string {
-  const proto = req.headers["x-forwarded-proto"] || "https";
-  const host = req.headers["x-forwarded-host"] || req.headers["host"] || "localhost";
-  return `${proto}://${host}`;
-}
-
-function setSessionCookie(res: Response, sid: string) {
-  res.cookie(SESSION_COOKIE, sid, {
-    httpOnly: true,
-    secure: false,
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_TTL,
-  });
-}
-
-function setOidcCookie(res: Response, name: string, value: string) {
-  res.cookie(name, value, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: OIDC_COOKIE_TTL,
-  });
-}
+const IS_LOCAL = process.env.NODE_ENV === "development" && !process.env.CLERK_SECRET_KEY;
 
 function getSafeReturnTo(value: unknown): string {
   if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) {
@@ -49,14 +21,23 @@ function getSafeReturnTo(value: unknown): string {
   return value;
 }
 
-async function upsertUser(claims: Record<string, unknown>) {
-  const userData = {
-    id: claims.sub as string,
-    email: (claims.email as string) || null,
-    firstName: (claims.first_name as string) || null,
-    lastName: (claims.last_name as string) || null,
-    profileImageUrl: (claims.profile_image_url || claims.picture) as string | null,
-  };
+function setSessionCookie(res: Response, sid: string) {
+  res.cookie(SESSION_COOKIE, sid, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: SESSION_TTL,
+  });
+}
+
+async function upsertUser(userData: {
+  id: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  profileImageUrl: string | null;
+}) {
   const [user] = await db
     .insert(usersTable)
     .values(userData)
@@ -68,14 +49,41 @@ async function upsertUser(claims: Record<string, unknown>) {
   return user;
 }
 
-router.get("/auth/user", (req: Request, res: Response) => {
-  res.json(
-    GetCurrentAuthUserResponse.parse({
-      user: req.isAuthenticated() ? req.user : null,
-    }),
-  );
+// ─── GET /auth/user ────────────────────────────────────────────────────────
+router.get("/auth/user", async (req: Request, res: Response) => {
+  if (IS_LOCAL) {
+    res.json(
+      GetCurrentAuthUserResponse.parse({
+        user: (req as any).isAuthenticated() ? (req as any).user : null,
+      }),
+    );
+    return;
+  }
+
+  const auth = getAuth(req);
+
+  if (!auth.userId) {
+    res.json(GetCurrentAuthUserResponse.parse({ user: null }));
+    return;
+  }
+
+  try {
+    const clerkUser = await clerkClient.users.getUser(auth.userId);
+    const userData = {
+      id: auth.userId,
+      email: clerkUser.emailAddresses[0]?.emailAddress || null,
+      firstName: clerkUser.firstName || null,
+      lastName: clerkUser.lastName || null,
+      profileImageUrl: clerkUser.imageUrl || null,
+    };
+    const dbUser = await upsertUser(userData);
+    res.json(GetCurrentAuthUserResponse.parse({ user: dbUser }));
+  } catch (err) {
+    res.status(500).json({ error: "Failed to get user" });
+  }
 });
 
+// ─── MODE LOCAL (développement sans Clerk) ─────────────────────────────────
 if (IS_LOCAL) {
   router.get("/login", (_req: Request, res: Response) => {
     res.send(`<!DOCTYPE html>
@@ -105,7 +113,7 @@ if (IS_LOCAL) {
       <input name="lastName" value="Dev" required />
       <label>Email</label>
       <input name="email" type="email" value="dev@soukma.ma" required />
-      <input type="hidden" name="returnTo" value="/soukma/" />
+      <input type="hidden" name="returnTo" value="/" />
       <button type="submit">Se connecter</button>
     </form>
   </div>
@@ -117,13 +125,7 @@ if (IS_LOCAL) {
     const { firstName, lastName, email, returnTo } = req.body;
     const safeReturn = getSafeReturnTo(returnTo);
     const userId = `local-${email.replace(/[^a-z0-9]/gi, "-")}`;
-    await db
-      .insert(usersTable)
-      .values({ id: userId, email, firstName, lastName, profileImageUrl: null })
-      .onConflictDoUpdate({
-        target: usersTable.id,
-        set: { email, firstName, lastName, updatedAt: new Date() },
-      });
+    await upsertUser({ id: userId, email, firstName, lastName, profileImageUrl: null });
     const sessionData: SessionData = {
       user: { id: userId, email, firstName, lastName, profileImageUrl: null },
       access_token: "mock-token",
@@ -137,86 +139,21 @@ if (IS_LOCAL) {
   router.get("/logout", async (req: Request, res: Response) => {
     const sid = getSessionId(req);
     await clearSession(res, sid);
-    res.redirect("/soukma/");
+    res.redirect("/");
   });
 
+// ─── MODE PRODUCTION (Clerk) ────────────────────────────────────────────────
 } else {
-  router.get("/login", async (req: Request, res: Response) => {
-    const config = await getOidcConfig();
-    const callbackUrl = `${getOrigin(req)}/api/callback`;
+  router.get("/login", (req: Request, res: Response) => {
     const returnTo = getSafeReturnTo(req.query.returnTo);
-    const state = oidc.randomState();
-    const nonce = oidc.randomNonce();
-    const codeVerifier = oidc.randomPKCECodeVerifier();
-    const codeChallenge = await oidc.calculatePKCECodeChallenge(codeVerifier);
-    const redirectTo = oidc.buildAuthorizationUrl(config, {
-      redirect_uri: callbackUrl,
-      scope: "openid email profile offline_access",
-      code_challenge: codeChallenge,
-      code_challenge_method: "S256",
-      prompt: "login consent",
-      state,
-      nonce,
-    });
-    setOidcCookie(res, "code_verifier", codeVerifier);
-    setOidcCookie(res, "nonce", nonce);
-    setOidcCookie(res, "state", state);
-    setOidcCookie(res, "return_to", returnTo);
-    res.redirect(redirectTo.href);
-  });
-
-  router.get("/callback", async (req: Request, res: Response) => {
-    const config = await getOidcConfig();
-    const callbackUrl = `${getOrigin(req)}/api/callback`;
-    const codeVerifier = req.cookies?.code_verifier;
-    const nonce = req.cookies?.nonce;
-    const expectedState = req.cookies?.state;
-    if (!codeVerifier || !expectedState) { res.redirect("/api/login"); return; }
-    const currentUrl = new URL(
-      `${callbackUrl}?${new URL(req.url, `http://${req.headers.host}`).searchParams}`,
-    );
-    let tokens: oidc.TokenEndpointResponse & oidc.TokenEndpointResponseHelpers;
-    try {
-      tokens = await oidc.authorizationCodeGrant(config, currentUrl, {
-        pkceCodeVerifier: codeVerifier,
-        expectedNonce: nonce,
-        expectedState,
-        idTokenExpected: true,
-      });
-    } catch { res.redirect("/api/login"); return; }
-    const returnTo = getSafeReturnTo(req.cookies?.return_to);
-    res.clearCookie("code_verifier", { path: "/" });
-    res.clearCookie("nonce", { path: "/" });
-    res.clearCookie("state", { path: "/" });
-    res.clearCookie("return_to", { path: "/" });
-    const claims = tokens.claims();
-    if (!claims) { res.redirect("/api/login"); return; }
-    const dbUser = await upsertUser(claims as unknown as Record<string, unknown>);
-    const now = Math.floor(Date.now() / 1000);
-    const sessionData: SessionData = {
-      user: {
-        id: dbUser.id, email: dbUser.email, firstName: dbUser.firstName,
-        lastName: dbUser.lastName, profileImageUrl: dbUser.profileImageUrl,
-      },
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
-      expires_at: tokens.expiresIn() ? now + tokens.expiresIn()! : claims.exp,
-    };
-    const sid = await createSession(sessionData);
-    setSessionCookie(res, sid);
-    res.redirect(returnTo);
+    // Clerk gère le login côté frontend, on redirige simplement
+    res.redirect(`/?returnTo=${encodeURIComponent(returnTo)}`);
   });
 
   router.get("/logout", async (req: Request, res: Response) => {
-    const config = await getOidcConfig();
-    const origin = getOrigin(req);
     const sid = getSessionId(req);
-    await clearSession(res, sid);
-    const endSessionUrl = oidc.buildEndSessionUrl(config, {
-      client_id: process.env.REPL_ID!,
-      post_logout_redirect_uri: origin,
-    });
-    res.redirect(endSessionUrl.href);
+    if (sid) await clearSession(res, sid);
+    res.redirect("/");
   });
 }
 
