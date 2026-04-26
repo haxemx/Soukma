@@ -43,12 +43,10 @@ export async function getSession(sid: string): Promise<SessionData | null> {
     .select()
     .from(sessionsTable)
     .where(eq(sessionsTable.sid, sid));
-
   if (!row || row.expire < new Date()) {
     if (row) await deleteSession(sid);
     return null;
   }
-
   return row.sess as unknown as SessionData;
 }
 
