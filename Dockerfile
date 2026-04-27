@@ -1,15 +1,12 @@
 FROM node:20-alpine
 
-RUN npm install -g pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-COPY pnpm-lock.yaml ./
-COPY pnpm-workspace.yaml ./
-COPY package.json ./
-
-COPY lib ./lib
-COPY artifacts/api-server ./artifacts/api-server
+COPY . .
 
 RUN pnpm install --frozen-lockfile
 
