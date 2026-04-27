@@ -21,6 +21,7 @@
     "typescript": "~5.9.2"
   },
   "dependencies": {
-    "nodemailer": "^8.0.6"
+    "nodemailer": "^8.0.6",
+    "resend": "^6.12.2"
   }
 }
