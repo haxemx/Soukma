@@ -1,4 +1,4 @@
-import { setBaseUrl } from "@workspace/api-client-react";
+import { setBaseUrl, setAuthTokenGetter } from "@workspace/api-client-react";
 
 const ROOT = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 
@@ -11,6 +11,9 @@ if (import.meta.env.VITE_API_URL) {
 } else {
   setBaseUrl("");
 }
+
+// Lire le token depuis localStorage
+setAuthTokenGetter(() => localStorage.getItem("auth_token"));
 
 export function appPath(path: string): string {
   if (path === "/") return ROOT === "" ? "/" : ROOT;

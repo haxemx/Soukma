@@ -4,27 +4,10 @@ import jwt from "jsonwebtoken";
 import { GetCurrentAuthUserResponse } from "@workspace/api-zod";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import {
-  clearSession,
-  getSessionId,
-  createSession,
-  SESSION_COOKIE,
-  SESSION_TTL,
-  type SessionData,
-} from "../lib/auth";
 
 const router: IRouter = Router();
 const JWT_SECRET = process.env.SESSION_SECRET ?? "secret";
-
-function setSessionCookie(res: Response, sid: string) {
-  res.cookie(SESSION_COOKIE, sid, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    path: "/",
-    maxAge: SESSION_TTL,
-  });
-}
+const JWT_EXPIRES = "7d";
 
 // ─── GET /auth/user ────────────────────────────────────────────────────────
 router.get("/auth/user", (req: Request, res: Response) => {
@@ -68,7 +51,10 @@ router.post("/auth/register", async (req: Request, res: Response) => {
     })
     .returning();
 
-  const sessionData: SessionData = {
+  const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+
+  res.status(201).json({
+    token,
     user: {
       id: user.id,
       email: user.email,
@@ -76,13 +62,7 @@ router.post("/auth/register", async (req: Request, res: Response) => {
       lastName: user.lastName,
       profileImageUrl: user.profileImageUrl,
     },
-    access_token: jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" }),
-    expires_at: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
-  };
-
-  const sid = await createSession(sessionData);
-  setSessionCookie(res, sid);
-  res.status(201).json({ user: sessionData.user });
+  });
 });
 
 // ─── POST /auth/login ──────────────────────────────────────────────────────
@@ -111,7 +91,10 @@ router.post("/auth/login", async (req: Request, res: Response) => {
     return;
   }
 
-  const sessionData: SessionData = {
+  const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+
+  res.json({
+    token,
     user: {
       id: user.id,
       email: user.email,
@@ -119,25 +102,20 @@ router.post("/auth/login", async (req: Request, res: Response) => {
       lastName: user.lastName,
       profileImageUrl: user.profileImageUrl,
     },
-    access_token: jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" }),
-    expires_at: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
-  };
-
-  const sid = await createSession(sessionData);
-  setSessionCookie(res, sid);
-  res.json({ user: sessionData.user });
+  });
 });
 
-// ─── GET /logout ───────────────────────────────────────────────────────────
-router.get("/logout", async (req: Request, res: Response) => {
-  const sid = getSessionId(req);
-  await clearSession(res, sid);
-  res.redirect("/");
+// ─── POST /auth/logout ─────────────────────────────────────────────────────
+router.post("/auth/logout", (_req: Request, res: Response) => {
+  res.json({ success: true });
 });
 
-// ─── GET /login (redirect) ─────────────────────────────────────────────────
 router.get("/login", (_req: Request, res: Response) => {
   res.redirect("/login");
+});
+
+router.get("/logout", (_req: Request, res: Response) => {
+  res.redirect("/");
 });
 
 export default router;

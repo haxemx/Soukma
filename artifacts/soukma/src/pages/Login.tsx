@@ -32,7 +32,6 @@ export default function LoginPage() {
       const res = await fetch(`${apiBase}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify(body),
       });
 
@@ -43,6 +42,8 @@ export default function LoginPage() {
         return;
       }
 
+      // Sauvegarder le token dans localStorage
+      localStorage.setItem("auth_token", data.token);
       setLocation("/");
       window.location.reload();
     } catch {
@@ -54,7 +55,6 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
-      {/* Animated background blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.div
           animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
@@ -79,13 +79,9 @@ export default function LoginPage() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="relative w-full max-w-md"
       >
-        {/* Card */}
         <div className="overflow-hidden rounded-2xl border border-border bg-background/80 shadow-2xl backdrop-blur-xl">
-          {/* Top gradient bar */}
           <div className="moroccan-gradient h-1.5 w-full" />
-
           <div className="p-8">
-            {/* Logo */}
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -101,7 +97,6 @@ export default function LoginPage() {
               <p className="text-sm text-muted-foreground">Marketplace marocaine</p>
             </motion.div>
 
-            {/* Mode tabs */}
             <div className="mb-6 flex rounded-xl bg-muted p-1">
               {(["login", "register"] as const).map((m) => (
                 <button
@@ -123,7 +118,6 @@ export default function LoginPage() {
               ))}
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <AnimatePresence mode="wait">
                 {mode === "register" && (
@@ -137,23 +131,11 @@ export default function LoginPage() {
                   >
                     <div className="space-y-1.5">
                       <Label htmlFor="firstName" className="text-xs font-medium">Prénom</Label>
-                      <Input
-                        id="firstName"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="Prénom"
-                        className="h-10"
-                      />
+                      <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Prénom" className="h-10" />
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="lastName" className="text-xs font-medium">Nom</Label>
-                      <Input
-                        id="lastName"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        placeholder="Nom"
-                        className="h-10"
-                      />
+                      <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Nom" className="h-10" />
                     </div>
                   </motion.div>
                 )}
@@ -161,34 +143,14 @@ export default function LoginPage() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="email" className="text-xs font-medium">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="votre@email.com"
-                  required
-                  className="h-10"
-                />
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="votre@email.com" required className="h-10" />
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="password" className="text-xs font-medium">Mot de passe</Label>
                 <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    className="h-10 pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
+                  <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required className="h-10 pr-10" />
+                  <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
@@ -208,11 +170,7 @@ export default function LoginPage() {
               </AnimatePresence>
 
               <motion.div whileTap={{ scale: 0.98 }}>
-                <Button
-                  type="submit"
-                  className="moroccan-gradient h-11 w-full gap-2 text-sm font-semibold text-white shadow-md"
-                  disabled={loading}
-                >
+                <Button type="submit" className="moroccan-gradient h-11 w-full gap-2 text-sm font-semibold text-white shadow-md" disabled={loading}>
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -226,8 +184,6 @@ export default function LoginPage() {
             </form>
           </div>
         </div>
-
-        {/* Bottom text */}
         <p className="mt-4 text-center text-xs text-muted-foreground">
           En continuant, vous acceptez nos{" "}
           <span className="text-primary hover:underline cursor-pointer">conditions d'utilisation</span>
