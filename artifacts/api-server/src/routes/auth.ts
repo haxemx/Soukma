@@ -19,8 +19,8 @@ const JWT_SECRET = process.env.SESSION_SECRET ?? "secret";
 function setSessionCookie(res: Response, sid: string) {
   res.cookie(SESSION_COOKIE, sid, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: true,
+    sameSite: "none",
     path: "/",
     maxAge: SESSION_TTL,
   });
