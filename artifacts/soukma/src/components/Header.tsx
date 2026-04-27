@@ -147,7 +147,7 @@ export function Header() {
             </DropdownMenu>
           ) : (
             <Button asChild variant="default" size="sm" className="hidden md:inline-flex">
-              <a href={loginUrl()} data-testid="link-login">Se connecter</a>
+              <a href="/login" data-testid="link-login">Se connecter</a>
             </Button>
           )}
 
@@ -188,7 +188,7 @@ export function Header() {
             ))}
             {!isAuth && (
               <a
-                href={loginUrl()}
+                href="/login"
                 className="rounded-md px-3 py-2 text-sm font-medium text-primary hover-elevate"
               >
                 Se connecter
