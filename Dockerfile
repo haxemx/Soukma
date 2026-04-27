@@ -12,4 +12,4 @@ RUN pnpm --filter @workspace/api-server build
 
 EXPOSE 3000
 
-CMD ["node", "--enable-source-maps", "/app/artifacts/api-server/dist/index.mjs"]
+CMD ["node", "--enable-source-maps", "artifacts/api-server/dist/index.mjs"]
