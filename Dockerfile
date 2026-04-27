@@ -1,16 +1,10 @@
 FROM node:20-alpine
 
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
 WORKDIR /app
 
 COPY . .
 
-RUN pnpm install --frozen-lockfile
-
-RUN pnpm --filter @workspace/api-server build
+RUN npm install -g pnpm && pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server build
 
 EXPOSE 3000
 
