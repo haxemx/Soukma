@@ -10,8 +10,12 @@
   },
   "private": true,
   "devDependencies": {
+    "@types/nodemailer": "^8.0.0",
     "prettier": "^3.8.1",
     "tsx": "catalog:",
     "typescript": "~5.9.2"
+  },
+  "dependencies": {
+    "nodemailer": "^8.0.6"
   }
 }

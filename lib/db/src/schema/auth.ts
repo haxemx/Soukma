@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 
 export const sessionsTable = pgTable(
   "sessions",
@@ -19,6 +19,9 @@ export const usersTable = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   role: varchar("role", { length: 20 }).notNull().default("customer"),
+  isVerified: boolean("is_verified").notNull().default(false),
+  verificationCode: varchar("verification_code", { length: 6 }),
+  codeExpiry: timestamp("code_expiry", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

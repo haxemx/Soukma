@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { GetCurrentAuthUserResponse } from "@workspace/api-zod";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { sendVerificationEmail } from "../lib/mailer";
 
 const router: IRouter = Router();
 const JWT_SECRET = process.env.SESSION_SECRET ?? "secret";
@@ -39,21 +40,60 @@ router.post("/auth/register", async (req: Request, res: Response) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
+  const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const codeExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  await db.insert(usersTable).values({
+    email,
+    password: hashedPassword,
+    firstName: firstName || null,
+    lastName: lastName || null,
+    profileImageUrl: null,
+    isVerified: false,
+    verificationCode,
+    codeExpiry,
+  });
+
+  await sendVerificationEmail(email, verificationCode);
+
+  res.status(201).json({
+    message: "Compte créé. Vérifiez votre email pour activer votre compte.",
+  });
+});
+
+// ─── POST /auth/verify ─────────────────────────────────────────────────────
+router.post("/auth/verify", async (req: Request, res: Response) => {
+  const { email, code } = req.body;
+
+  if (!email || !code) {
+    res.status(400).json({ error: "Email et code requis" });
+    return;
+  }
 
   const [user] = await db
-    .insert(usersTable)
-    .values({
-      email,
-      password: hashedPassword,
-      firstName: firstName || null,
-      lastName: lastName || null,
-      profileImageUrl: null,
-    })
-    .returning();
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, email))
+    .limit(1);
+
+  if (!user || user.verificationCode !== code) {
+    res.status(400).json({ error: "Code invalide" });
+    return;
+  }
+
+  if (!user.codeExpiry || new Date() > user.codeExpiry) {
+    res.status(400).json({ error: "Code expiré" });
+    return;
+  }
+
+  await db
+    .update(usersTable)
+    .set({ isVerified: true, verificationCode: null })
+    .where(eq(usersTable.email, email));
 
   const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
-  res.status(201).json({
+  res.json({
     token,
     user: {
       id: user.id,
@@ -82,6 +122,11 @@ router.post("/auth/login", async (req: Request, res: Response) => {
 
   if (!user || !user.password) {
     res.status(401).json({ error: "Email ou mot de passe incorrect" });
+    return;
+  }
+
+  if (!user.isVerified) {
+    res.status(403).json({ error: "Veuillez activer votre compte via l'email reçu" });
     return;
   }
 
