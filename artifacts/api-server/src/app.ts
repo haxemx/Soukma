@@ -28,14 +28,24 @@ app.use(
   }),
 );
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://soukma-soukma.vercel.app",
+  "https://soukma.vercel.app",
+];
+
 app.use(cors({
   credentials: true,
-  origin: [
-    "http://localhost:5173",
-    "https://soukma-soukma.vercel.app",
-    "https://soukma.vercel.app",
-  ],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    }
+  },
 }));
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
