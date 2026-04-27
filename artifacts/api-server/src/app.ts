@@ -33,6 +33,7 @@ app.use(cors({
   origin: [
     "http://localhost:5173",
     "https://soukma-soukma.vercel.app",
+    "https://soukma.vercel.app",
   ],
 }));
 app.use(cookieParser());
