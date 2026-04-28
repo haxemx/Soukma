@@ -144,7 +144,7 @@ function ProductModal({ product, categories, onClose, onSaved }: {
 }
 
 export default function AdminProductsPage() {
-  const productsQ = useListAllProductsAdmin({}, { query: { staleTime: 0, refetchOnMount: true } });
+  const productsQ = useListAllProductsAdmin({}, { query: { staleTime: 0, refetchOnMount: true, refetchInterval: 10_000 } });
   const products = (productsQ.data ?? []) as Product[];
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
@@ -195,13 +195,15 @@ export default function AdminProductsPage() {
     } finally { setDeleting(null); }
   }
 
-  const filtered = products.filter(p => {
+  const filtered = products
+  .filter(p => {
     const matchSearch = p.title.toLowerCase().includes(search.toLowerCase());
     if (filter === "featured") return matchSearch && p.isFeatured;
     if (filter === "low-stock") return matchSearch && p.stock < 5;
     if (filter === "promo") return matchSearch && p.compareAtPrice && p.compareAtPrice > p.price;
     return matchSearch;
-  });
+  })
+  .sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
 
   const stats = {
     total: products.length,
