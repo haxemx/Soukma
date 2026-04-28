@@ -217,3 +217,65 @@ router.get("/admin/products", async (req, res) => {
 });
 
 export default router;
+
+// ─── POST /admin/products ──────────────────────────────────────────────────
+router.post("/admin/products", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const admin = await requireAdmin(req);
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
+
+  const { title, description, price, compareAtPrice, stock, categoryId, imageUrl, isFeatured } = req.body;
+  if (!title || !price || !categoryId) { res.status(400).json({ error: "Champs requis manquants" }); return; }
+
+  const slug = title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now();
+
+  const [product] = await db.insert(productsTable).values({
+    title, description, price: price.toString(),
+    compareAtPrice: compareAtPrice ? compareAtPrice.toString() : null,
+    stock: stock ?? 0, categoryId, imageUrl: imageUrl || null,
+    isFeatured: isFeatured ?? false, slug,
+  }).returning();
+
+  res.status(201).json(product);
+});
+
+// ─── PUT /admin/products/:id ───────────────────────────────────────────────
+router.put("/admin/products/:id", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const admin = await requireAdmin(req);
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
+
+  const { id } = req.params;
+  const { title, description, price, compareAtPrice, stock, categoryId, imageUrl, isFeatured } = req.body;
+
+  const [product] = await db.update(productsTable).set({
+    title, description,
+    price: price?.toString(),
+    compareAtPrice: compareAtPrice ? compareAtPrice.toString() : null,
+    stock, categoryId, imageUrl, isFeatured,
+  }).where(eq(productsTable.id, id)).returning();
+
+  if (!product) { res.status(404).json({ error: "Produit introuvable" }); return; }
+  res.json(product);
+});
+
+// ─── DELETE /admin/products/:id ────────────────────────────────────────────
+router.delete("/admin/products/:id", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const admin = await requireAdmin(req);
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
+
+  const { id } = req.params;
+  await db.delete(productsTable).where(eq(productsTable.id, id));
+  res.json({ success: true });
+});
+
+// ─── GET /admin/categories ─────────────────────────────────────────────────
+router.get("/admin/categories", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const admin = await requireAdmin(req);
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
+
+  const categories = await db.select().from(categoriesTable).orderBy(categoriesTable.sortOrder);
+  res.json(categories);
+});
