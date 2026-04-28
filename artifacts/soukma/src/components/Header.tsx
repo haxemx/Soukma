@@ -43,12 +43,7 @@ export function Header() {
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!search.trim()) setLocation("/products");
-    else {
-      const h = JSON.parse(localStorage.getItem("soukma_search_history") ?? "[]");
-      const updated = [search.trim(), ...h.filter((x: string) => x !== search.trim())].slice(0, 5);
-      localStorage.setItem("soukma_search_history", JSON.stringify(updated));
-      setLocation(`/products?search=${encodeURIComponent(search.trim())}`);
-    }
+    else setLocation(`/products?search=${encodeURIComponent(search.trim())}`);
   }
 
   return (
