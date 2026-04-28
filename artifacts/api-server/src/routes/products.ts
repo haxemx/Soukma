@@ -158,6 +158,18 @@ router.get("/products/trending", async (_req, res) => {
   res.json(items.map(serializeProduct));
 });
 
+router.get("/products/:id/similar", async (req, res) => {
+  const { id } = req.params;
+  const product = await db.select({ categoryId: productsTable.categoryId }).from(productsTable).where(eq(productsTable.id, id)).limit(1);
+  if (!product[0]) { res.status(404).json({ error: "Not found" }); return; }
+  const items = await db.select(baseSelect).from(productsTable)
+    .innerJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
+    .leftJoin(vendorsTable, eq(productsTable.vendorId, vendorsTable.id))
+    .where(and(eq(productsTable.categoryId, product[0].categoryId), sql` != `))
+    .orderBy(desc(productsTable.viewCount)).limit(4);
+  res.json(items.map(serializeProduct));
+});
+
 router.get("/products/:id", async (req, res) => {
   const parsed = GetProductParams.safeParse(req.params);
   if (!parsed.success) {

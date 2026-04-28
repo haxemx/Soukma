@@ -22,6 +22,13 @@ export default function ProductsPage() {
   const [, setLocation] = useLocation();
 
   const [q, setQ] = useState(params.get("search") ?? "");
+  const [searchHistory, setSearchHistory] = useState<string[]>(() => JSON.parse(localStorage.getItem("soukma_search_history") ?? "[]"));
+  function saveSearch(term: string) {
+    if (!term.trim()) return;
+    const updated = [term, ...searchHistory.filter(h => h !== term)].slice(0, 5);
+    setSearchHistory(updated);
+    localStorage.setItem("soukma_search_history", JSON.stringify(updated));
+  }
   const [minPrice, setMinPrice] = useState(params.get("minPrice") ?? "");
   const [maxPrice, setMaxPrice] = useState(params.get("maxPrice") ?? "");
   const [sort, setSort] = useState<string>(params.get("sort") ?? "newest");
@@ -59,6 +66,7 @@ export default function ProductsPage() {
     if (minPrice) next.set("minPrice", minPrice);
     if (maxPrice) next.set("maxPrice", maxPrice);
     if (sort && sort !== "newest") next.set("sort", sort);
+    saveSearch(q);
     setLocation(`/products${next.toString() ? `?${next.toString()}` : ""}`);
   }
 
@@ -111,6 +119,19 @@ export default function ProductsPage() {
                     />
                   </div>
                 </div>
+                {searchHistory.length > 0 && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Recherches récentes</label>
+                    <div className="flex flex-wrap gap-1">
+                      {searchHistory.map((h) => (
+                        <button key={h} onClick={() => { setQ(h); }}
+                          className="rounded-full border border-border px-2 py-0.5 text-xs hover:bg-primary hover:text-white transition-colors">
+                          {h}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted-foreground">Min (MAD)</label>

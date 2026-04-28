@@ -48,6 +48,9 @@ export function ProductCard({ product }: { product: Product }) {
               <Badge className="bg-primary text-primary-foreground shadow-lg">-{discount}%</Badge>
             </motion.div>
           )}
+          {product.viewCount != null && product.viewCount >= 5 && (
+            <Badge className="absolute left-3 bottom-3 bg-orange-500 text-white shadow-lg text-[10px]">🔥 Tendance</Badge>
+          )}
           {product.isFeatured && (
             <Badge variant="secondary" className="absolute right-3 top-3 bg-accent text-accent-foreground shadow-lg">
               Coup de cœur
