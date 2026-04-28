@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useListProducts } from "@workspace/api-client-react";
 import { Layout } from "@/components/Layout";
+import { ZelligeBackground } from "@/components/ZelligeBackground";
 import { ProductCard } from "@/components/ProductCard";
 import { CategoryPills } from "@/components/CategoryPills";
 import { Input } from "@/components/ui/input";
@@ -82,6 +83,7 @@ export default function ProductsPage() {
 
   return (
     <Layout>
+      <ZelligeBackground opacity={0.04} />
       <section className="zellige-pattern border-b border-border">
         <div className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-primary">Catalogue</p>
