@@ -7,6 +7,30 @@ import { apiBase } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
 
+const ZelligeBackground = () => (
+  <svg style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', opacity: 0.06, zIndex: 0 }} xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="zellige" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+        {/* Étoile à 8 branches */}
+        <polygon points="40,5 47,25 65,15 55,33 75,40 55,47 65,65 47,55 40,75 33,55 15,65 25,47 5,40 25,33 15,15 33,25" fill="none" stroke="currentColor" strokeWidth="1"/>
+        {/* Carré central */}
+        <rect x="28" y="28" width="24" height="24" transform="rotate(45 40 40)" fill="none" stroke="currentColor" strokeWidth="0.8"/>
+        {/* Losanges aux coins */}
+        <polygon points="40,0 47,8 40,16 33,8" fill="none" stroke="currentColor" strokeWidth="0.6"/>
+        <polygon points="40,64 47,72 40,80 33,72" fill="none" stroke="currentColor" strokeWidth="0.6"/>
+        <polygon points="0,40 8,47 16,40 8,33" fill="none" stroke="currentColor" strokeWidth="0.6"/>
+        <polygon points="64,40 72,47 80,40 72,33" fill="none" stroke="currentColor" strokeWidth="0.6"/>
+        {/* Petits carrés aux intersections */}
+        <rect x="17" y="17" width="6" height="6" transform="rotate(45 20 20)" fill="none" stroke="currentColor" strokeWidth="0.6"/>
+        <rect x="57" y="17" width="6" height="6" transform="rotate(45 60 20)" fill="none" stroke="currentColor" strokeWidth="0.6"/>
+        <rect x="17" y="57" width="6" height="6" transform="rotate(45 20 60)" fill="none" stroke="currentColor" strokeWidth="0.6"/>
+        <rect x="57" y="57" width="6" height="6" transform="rotate(45 60 60)" fill="none" stroke="currentColor" strokeWidth="0.6"/>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#zellige)" className="text-foreground" style={{color: 'hsl(var(--foreground))'}}/>
+  </svg>
+);
+
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -24,106 +48,65 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const endpoint = mode === "login" ? "/auth/login" : "/auth/register";
-      const body = mode === "login"
-        ? { email, password }
-        : { email, password, firstName, lastName };
-
-      const res = await fetch(`${apiBase}${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
+      const body = mode === "login" ? { email, password } : { email, password, firstName, lastName };
+      const res = await fetch(`${apiBase}${endpoint}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
-
       if (!res.ok) {
-        // Si le compte n'est pas activé, rediriger vers l'écran de vérification
-        if (res.status === 403) {
-          setStep("verify");
-          return;
-        }
+        if (res.status === 403) { setStep("verify"); return; }
         setError(data.error ?? "Une erreur est survenue");
         return;
       }
-
-      if (mode === "register") {
-        setStep("verify");
-        return;
-      }
-
+      if (mode === "register") { setStep("verify"); return; }
       localStorage.setItem("auth_token", data.token);
       setLocation("/");
       window.location.reload();
-    } catch {
-      setError("Erreur de connexion au serveur");
-    } finally {
-      setLoading(false);
-    }
+    } catch { setError("Erreur de connexion au serveur"); } 
+    finally { setLoading(false); }
   }
 
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
-      const res = await fetch(`${apiBase}/auth/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }),
-      });
-
+      const res = await fetch(`${apiBase}/auth/verify`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, code }) });
       const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error ?? "Code invalide");
-        return;
-      }
-
+      if (!res.ok) { setError(data.error ?? "Code invalide"); return; }
       localStorage.setItem("auth_token", data.token);
       setLocation("/");
       window.location.reload();
-    } catch {
-      setError("Erreur de connexion au serveur");
-    } finally {
-      setLoading(false);
-    }
+    } catch { setError("Erreur de connexion au serveur"); }
+    finally { setLoading(false); }
   }
 
   async function handleResendCode() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${apiBase}/auth/resend-code`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const res = await fetch(`${apiBase}/auth/resend-code`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Erreur lors du renvoi");
-      } else {
-        setError("✓ Code renvoyé, vérifiez votre email");
-      }
-    } catch {
-      setError("Erreur de connexion au serveur");
-    } finally {
-      setLoading(false);
-    }
+      if (!res.ok) { setError(data.error ?? "Erreur lors du renvoi"); }
+      else { setError("✓ Code renvoyé, vérifiez votre email et vos spams"); }
+    } catch { setError("Erreur de connexion au serveur"); }
+    finally { setLoading(false); }
   }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      
+      {/* Zellige Background */}
+      <ZelligeBackground />
+
+      {/* Blobs décoratifs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" style={{zIndex: 1}}>
         <motion.div animate={{ x: [0, 30, 0], y: [0, -20, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
         <motion.div animate={{ x: [0, -20, 0], y: [0, 30, 0] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
         <motion.div animate={{ x: [0, 15, 0], y: [0, 15, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-200/20 blur-3xl" />
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: "easeOut" }} className="relative w-full max-w-md">
+      <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: "easeOut" }} className="relative w-full max-w-md" style={{zIndex: 2}}>
         <div className="overflow-hidden rounded-2xl border border-border bg-background/80 shadow-2xl backdrop-blur-xl">
           <div className="moroccan-gradient h-1.5 w-full" />
           <div className="p-8">
@@ -138,11 +121,16 @@ export default function LoginPage() {
             <AnimatePresence mode="wait">
               {step === "verify" ? (
                 <motion.div key="verify" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.3 }}>
-                  <div className="mb-6 text-center">
+                  <div className="mb-5 text-center">
                     <h2 className="text-lg font-semibold">Vérifiez votre email</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Un code à 6 chiffres a été envoyé à <strong>{email}</strong>
                     </p>
+                    <div className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2">
+                      <span className="text-xs text-amber-600 dark:text-amber-400">
+                        Pensez à vérifier vos <strong>spams</strong> si vous ne trouvez pas l'email
+                      </span>
+                    </div>
                   </div>
 
                   <form onSubmit={handleVerify} className="space-y-4">
