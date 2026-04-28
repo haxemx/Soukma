@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiBase } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
+import { ZelligeBackground } from "@/components/ZelligeBackground";
 import { Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
 
 const ZelligeBackground = () => (
@@ -97,7 +98,7 @@ export default function LoginPage() {
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
       
       {/* Zellige Background */}
-      <div className="zellige-bg fixed inset-0 z-0" />
+      <ZelligeBackground opacity={0.05} />
 
       {/* Blobs décoratifs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" style={{zIndex: 1}}>

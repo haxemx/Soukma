@@ -6,6 +6,7 @@ import {
   useListTrendingProducts,
 } from "@workspace/api-client-react";
 import { Layout } from "@/components/Layout";
+import { ZelligeBackground } from "@/components/ZelligeBackground";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +18,7 @@ export default function HomePage() {
 
   return (
     <Layout>
+      <ZelligeBackground opacity={0.04} />
       <Hero />
 
       <Section
