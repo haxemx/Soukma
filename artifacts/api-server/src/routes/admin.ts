@@ -159,6 +159,7 @@ router.get("/admin/users", async (req, res) => {
       firstName: u.firstName,
       lastName: u.lastName,
       role: u.role,
+      isBanned: u.isBanned,
       createdAt: u.createdAt.toISOString(),
     })),
   );
@@ -278,4 +279,66 @@ router.get("/admin/categories", async (req, res) => {
 
   const categories = await db.select().from(categoriesTable).orderBy(categoriesTable.sortOrder);
   res.json(categories);
+});
+
+// ─── PATCH /admin/users/:id/role ──────────────────────────────────────────
+router.patch("/admin/users/:id/role", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const admin = await requireAdmin(req);
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
+
+  const { id } = req.params;
+  const { role } = req.body;
+  if (!["customer", "vendor", "admin"].includes(role)) {
+    res.status(400).json({ error: "Rôle invalide" }); return;
+  }
+
+  const [user] = await db.update(usersTable).set({ role }).where(eq(usersTable.id, id)).returning();
+  if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
+  res.json({ success: true, role: user.role });
+});
+
+// ─── PATCH /admin/users/:id/ban ───────────────────────────────────────────
+router.patch("/admin/users/:id/ban", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const admin = await requireAdmin(req);
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
+
+  const { id } = req.params;
+  const { banned } = req.body;
+
+  const [user] = await db.update(usersTable).set({ isBanned: banned }).where(eq(usersTable.id, id)).returning();
+  if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
+  res.json({ success: true, isBanned: user.isBanned });
+});
+
+// ─── PATCH /admin/users/:id/role ──────────────────────────────────────────
+router.patch("/admin/users/:id/role", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const admin = await requireAdmin(req);
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
+
+  const { id } = req.params;
+  const { role } = req.body;
+  if (!["customer", "vendor", "admin"].includes(role)) {
+    res.status(400).json({ error: "Rôle invalide" }); return;
+  }
+
+  const [user] = await db.update(usersTable).set({ role }).where(eq(usersTable.id, id)).returning();
+  if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
+  res.json({ success: true, role: user.role });
+});
+
+// ─── PATCH /admin/users/:id/ban ───────────────────────────────────────────
+router.patch("/admin/users/:id/ban", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const admin = await requireAdmin(req);
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
+
+  const { id } = req.params;
+  const { banned } = req.body;
+
+  const [user] = await db.update(usersTable).set({ isBanned: banned }).where(eq(usersTable.id, id)).returning();
+  if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
+  res.json({ success: true, isBanned: user.isBanned });
 });
