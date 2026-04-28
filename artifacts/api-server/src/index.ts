@@ -49,19 +49,3 @@ async function updateFeaturedProducts() {
 // Run immediately on startup, then every hour
 updateFeaturedProducts().catch(console.error);
 setInterval(() => updateFeaturedProducts().catch(console.error), 60 * 60 * 1000);
-
-// Weekly report every Monday at 8am
-import { sendWeeklyReport } from "./lib/mailer";
-
-async function scheduleWeeklyReport() {
-  const now = new Date();
-  const nextMonday = new Date(now);
-  nextMonday.setDate(now.getDate() + ((1 + 7 - now.getDay()) % 7 || 7));
-  nextMonday.setHours(8, 0, 0, 0);
-  const msUntilMonday = nextMonday.getTime() - now.getTime();
-  setTimeout(async () => {
-    await sendWeeklyReport().catch(console.error);
-    setInterval(() => sendWeeklyReport().catch(console.error), 7 * 24 * 60 * 60 * 1000);
-  }, msUntilMonday);
-}
-scheduleWeeklyReport();
