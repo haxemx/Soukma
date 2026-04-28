@@ -181,7 +181,7 @@ router.get("/admin/products", async (req, res) => {
     .from(productsTable)
     .innerJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
     .leftJoin(vendorsTable, eq(productsTable.vendorId, vendorsTable.id))
-    .orderBy(desc(productsTable.createdAt));
+    .orderBy(desc(productsTable.viewCount), desc(productsTable.createdAt));
   res.json(items.map(serializeProduct));
 });
 
