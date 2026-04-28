@@ -1,4 +1,4 @@
-import { productViews as productViewsTable } from "@workspace/db/schema";
+import { productViewsTable } from "@workspace/db/schema";
 import { Router, type IRouter } from "express";
 import {
   db,
@@ -62,7 +62,6 @@ function serializeProduct(row: any) {
     categoryName: row.categoryName,
     vendorId: row.vendorId,
     vendorName: row.vendorName ?? "soukMA Officiel",
-    // REMPLACER ICI: image principale du produit
     imageUrl: row.imageUrl,
     rating: Number(row.rating),
     reviewCount: row.reviewCount,
@@ -73,17 +72,11 @@ function serializeProduct(row: any) {
 }
 
 router.get("/admin/stats", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
   const admin = await requireAdmin(req);
-  if (!admin) {
-    res.status(403).json({ error: "Forbidden" });
-    return;
-  }
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
 
-  const [usersRow] = await db.select({ c: sql<number>`count(*)::int` }).from(usersTable);
+  const [usersRow] = await db.select({ c: sql<number>`count(*)::int` }).from(usersTable).where(eq(usersTable.role, "customer"));
   const [vendorsRow] = await db.select({ c: sql<number>`count(*)::int` }).from(vendorsTable);
   const [productsRow] = await db.select({ c: sql<number>`count(*)::int` }).from(productsTable);
   const [ordersRow] = await db.select({ c: sql<number>`count(*)::int` }).from(ordersTable);
@@ -92,18 +85,12 @@ router.get("/admin/stats", async (req, res) => {
   }).from(ordersTable);
 
   const ordersByStatus = await db
-    .select({
-      status: ordersTable.status,
-      count: sql<number>`count(*)::int`,
-    })
+    .select({ status: ordersTable.status, count: sql<number>`count(*)::int` })
     .from(ordersTable)
     .groupBy(ordersTable.status);
 
   const recent = await db
-    .select({
-      o: ordersTable,
-      itemCount: sql<number>`coalesce(sum(${orderItemsTable.quantity}), 0)::int`,
-    })
+    .select({ o: ordersTable, itemCount: sql<number>`coalesce(sum(${orderItemsTable.quantity}), 0)::int` })
     .from(ordersTable)
     .leftJoin(orderItemsTable, eq(orderItemsTable.orderId, ordersTable.id))
     .groupBy(ordersTable.id)
@@ -145,72 +132,50 @@ router.get("/admin/stats", async (req, res) => {
 });
 
 router.get("/admin/users", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
   const admin = await requireAdmin(req);
-  if (!admin) {
-    res.status(403).json({ error: "Forbidden" });
-    return;
-  }
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
+
   const rows = await db.select().from(usersTable).orderBy(desc(usersTable.createdAt));
-  res.json(
-    rows.map((u) => ({
-      id: u.id,
-      email: u.email,
-      firstName: u.firstName,
-      lastName: u.lastName,
-      role: u.role,
-      isBanned: u.isBanned,
-      createdAt: u.createdAt.toISOString(),
-    })),
-  );
+  res.json(rows.map((u) => ({
+    id: u.id,
+    email: u.email,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    role: u.role,
+    isBanned: u.isBanned,
+    createdAt: u.createdAt.toISOString(),
+  })));
 });
 
 router.get("/admin/orders", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
   const admin = await requireAdmin(req);
-  if (!admin) {
-    res.status(403).json({ error: "Forbidden" });
-    return;
-  }
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
+
   const rows = await db
-    .select({
-      o: ordersTable,
-      itemCount: sql<number>`coalesce(sum(${orderItemsTable.quantity}), 0)::int`,
-    })
+    .select({ o: ordersTable, itemCount: sql<number>`coalesce(sum(${orderItemsTable.quantity}), 0)::int` })
     .from(ordersTable)
     .leftJoin(orderItemsTable, eq(orderItemsTable.orderId, ordersTable.id))
     .groupBy(ordersTable.id)
     .orderBy(desc(ordersTable.createdAt));
-  res.json(
-    rows.map((r) => ({
-      id: r.o.id,
-      reference: r.o.reference,
-      status: r.o.status,
-      total: Number(r.o.total),
-      currency: r.o.currency,
-      itemCount: r.itemCount,
-      paymentMethod: r.o.paymentMethod,
-      createdAt: r.o.createdAt.toISOString(),
-    })),
-  );
+  res.json(rows.map((r) => ({
+    id: r.o.id,
+    reference: r.o.reference,
+    status: r.o.status,
+    total: Number(r.o.total),
+    currency: r.o.currency,
+    itemCount: r.itemCount,
+    paymentMethod: r.o.paymentMethod,
+    createdAt: r.o.createdAt.toISOString(),
+  })));
 });
 
 router.get("/admin/products", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
   const admin = await requireAdmin(req);
-  if (!admin) {
-    res.status(403).json({ error: "Forbidden" });
-    return;
-  }
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
+
   const items = await db
     .select(baseSelect)
     .from(productsTable)
@@ -220,8 +185,6 @@ router.get("/admin/products", async (req, res) => {
   res.json(items.map(serializeProduct));
 });
 
-
-// ─── POST /admin/products ──────────────────────────────────────────────────
 router.post("/admin/products", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
   const admin = await requireAdmin(req);
@@ -231,18 +194,15 @@ router.post("/admin/products", async (req, res) => {
   if (!title || !price || !categoryId) { res.status(400).json({ error: "Champs requis manquants" }); return; }
 
   const slug = title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now();
-
   const [product] = await db.insert(productsTable).values({
     title, description, price: price.toString(),
     compareAtPrice: compareAtPrice ? compareAtPrice.toString() : null,
     stock: stock ?? 0, categoryId, imageUrl: imageUrl || null,
     isFeatured: isFeatured ?? false, slug,
   }).returning();
-
   res.status(201).json(product);
 });
 
-// ─── PUT /admin/products/:id ───────────────────────────────────────────────
 router.put("/admin/products/:id", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
   const admin = await requireAdmin(req);
@@ -250,30 +210,25 @@ router.put("/admin/products/:id", async (req, res) => {
 
   const { id } = req.params;
   const { title, description, price, compareAtPrice, stock, categoryId, imageUrl, isFeatured } = req.body;
-
   const [product] = await db.update(productsTable).set({
     title, description,
     price: price?.toString(),
     compareAtPrice: compareAtPrice ? compareAtPrice.toString() : null,
     stock, categoryId, imageUrl, isFeatured,
   }).where(eq(productsTable.id, id)).returning();
-
   if (!product) { res.status(404).json({ error: "Produit introuvable" }); return; }
   res.json(product);
 });
 
-// ─── DELETE /admin/products/:id ────────────────────────────────────────────
 router.delete("/admin/products/:id", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
   const admin = await requireAdmin(req);
   if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
 
-  const { id } = req.params;
-  await db.delete(productsTable).where(eq(productsTable.id, id));
+  await db.delete(productsTable).where(eq(productsTable.id, req.params.id));
   res.json({ success: true });
 });
 
-// ─── GET /admin/categories ─────────────────────────────────────────────────
 router.get("/admin/categories", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
   const admin = await requireAdmin(req);
@@ -283,83 +238,33 @@ router.get("/admin/categories", async (req, res) => {
   res.json(categories);
 });
 
-// ─── PATCH /admin/users/:id/role ──────────────────────────────────────────
 router.patch("/admin/users/:id/role", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
   const admin = await requireAdmin(req);
   if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
 
-  const { id } = req.params;
   const { role } = req.body;
-  if (!["customer", "vendor", "admin"].includes(role)) {
-    res.status(400).json({ error: "Rôle invalide" }); return;
-  }
+  if (!["customer", "vendor", "admin"].includes(role)) { res.status(400).json({ error: "Rôle invalide" }); return; }
 
-  const [user] = await db.update(usersTable).set({ role }).where(eq(usersTable.id, id)).returning();
+  const [user] = await db.update(usersTable).set({ role }).where(eq(usersTable.id, req.params.id)).returning();
   if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
   res.json({ success: true, role: user.role });
 });
 
-// ─── PATCH /admin/users/:id/ban ───────────────────────────────────────────
 router.patch("/admin/users/:id/ban", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
   const admin = await requireAdmin(req);
   if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
 
-  const { id } = req.params;
-  const { banned } = req.body;
-
-  const [user] = await db.update(usersTable).set({ isBanned: banned }).where(eq(usersTable.id, id)).returning();
+  const [user] = await db.update(usersTable).set({ isBanned: req.body.banned }).where(eq(usersTable.id, req.params.id)).returning();
   if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
   res.json({ success: true, isBanned: user.isBanned });
 });
 
-// ─── PATCH /admin/users/:id/role ──────────────────────────────────────────
-router.patch("/admin/users/:id/role", async (req, res) => {
-  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
-  const admin = await requireAdmin(req);
-  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
-
-  const { id } = req.params;
-  const { role } = req.body;
-  if (!["customer", "vendor", "admin"].includes(role)) {
-    res.status(400).json({ error: "Rôle invalide" }); return;
-  }
-
-  const [user] = await db.update(usersTable).set({ role }).where(eq(usersTable.id, id)).returning();
-  if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
-  res.json({ success: true, role: user.role });
-});
-
-// ─── PATCH /admin/users/:id/ban ───────────────────────────────────────────
-router.patch("/admin/users/:id/ban", async (req, res) => {
-  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
-  const admin = await requireAdmin(req);
-  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
-
-  const { id } = req.params;
-  const { banned } = req.body;
-
-  const [user] = await db.update(usersTable).set({ isBanned: banned }).where(eq(usersTable.id, id)).returning();
-  if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
-  res.json({ success: true, isBanned: user.isBanned });
-});
-
-export default router;
-
-// ─── GET /admin/products/:id/views ─────────────────────────────────────────
 router.get("/admin/products/:id/views", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
   const admin = await requireAdmin(req);
-  if (!admin) {
-    res.status(403).json({ error: "Forbidden" });
-    return;
-  }
-
-  const { id } = req.params;
+  if (!admin) { res.status(403).json({ error: "Forbidden" }); return; }
 
   const views = await db
     .select({
@@ -371,39 +276,8 @@ router.get("/admin/products/:id/views", async (req, res) => {
     })
     .from(productViewsTable)
     .innerJoin(usersTable, eq(productViewsTable.userId, usersTable.id))
-    .where(eq(productViewsTable.productId, id))
+    .where(eq(productViewsTable.productId, req.params.id))
     .orderBy(desc(productViewsTable.viewedAt));
-
-  res.json(views);
-});
-
-// ─── GET /admin/products/:id/views ─────────────────────────────────────────
-router.get("/admin/products/:id/views", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  const admin = await requireAdmin(req);
-  if (!admin) {
-    res.status(403).json({ error: "Forbidden" });
-    return;
-  }
-
-  const { id } = req.params;
-
-  const views = await db
-    .select({
-      userId: usersTable.id,
-      email: usersTable.email,
-      firstName: usersTable.firstName,
-      lastName: usersTable.lastName,
-      viewedAt: productViewsTable.viewedAt,
-    })
-    .from(productViewsTable)
-    .innerJoin(usersTable, eq(productViewsTable.userId, usersTable.id))
-    .where(eq(productViewsTable.productId, id))
-    .orderBy(desc(productViewsTable.viewedAt));
-
   res.json(views);
 });
 

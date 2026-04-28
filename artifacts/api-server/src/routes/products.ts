@@ -177,19 +177,21 @@ router.get("/products/:id", async (req, res) => {
     return;
   }
 
-  // Incrémenter le compteur de vues
-  await db
-    .update(productsTable)
-    .set({ viewCount: sql`${productsTable.viewCount} + 1` })
-    .where(eq(productsTable.id, parsed.data.id));
-
-  // Enregistrer la vue si l'utilisateur est connecté
-  if (req.user?.id) {
-    await db.insert(productViewsTable).values({
-      productId: parsed.data.id,
-      userId: req.user.id,
-      viewedAt: new Date(),
-    });
+  // Incrémenter le compteur de vues (clients seulement)
+  const userRole = (req as any).user?.role;
+  const isClient = userRole === 'customer';
+  if (isClient) {
+    await db
+      .update(productsTable)
+      .set({ viewCount: sql`${productsTable.viewCount} + 1` })
+      .where(eq(productsTable.id, parsed.data.id));
+    if ((req as any).user?.id) {
+      await db.insert(productViewsTable).values({
+        productId: parsed.data.id,
+        userId: (req as any).user.id,
+        viewedAt: new Date(),
+      });
+    }
   }
 
   const specs = await db

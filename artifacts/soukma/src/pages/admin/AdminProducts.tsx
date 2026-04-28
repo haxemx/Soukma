@@ -144,7 +144,7 @@ function ProductModal({ product, categories, onClose, onSaved }: {
 }
 
 export default function AdminProductsPage() {
-  const productsQ = useListAllProductsAdmin();
+  const productsQ = useListAllProductsAdmin({}, { query: { staleTime: 0, refetchOnMount: true } });
   const products = (productsQ.data ?? []) as Product[];
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
@@ -191,7 +191,7 @@ export default function AdminProductsPage() {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      productsQ.refetch();
+      await productsQ.refetch();
     } finally { setDeleting(null); }
   }
 

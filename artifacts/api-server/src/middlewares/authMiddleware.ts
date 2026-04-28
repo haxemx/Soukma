@@ -25,6 +25,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
           firstName: user.firstName,
           lastName: user.lastName,
           profileImageUrl: user.profileImageUrl,
+          role: user.role,
         };
         (req as any).isAuthenticated = () => true;
         return next();

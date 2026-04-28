@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { useLocation } from "wouter";
+import { useGetMyProfile } from "@workspace/api-client-react";
 import { Layout } from "@/components/Layout";
 import { SidebarNav } from "@/components/SidebarNav";
 import { LayoutDashboard, Users, ShoppingBag, Package, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function AdminLayout({
   title,
@@ -18,20 +20,30 @@ export function AdminLayout({
   children: ReactNode;
 }) {
   const [, navigate] = useLocation();
-  const adminAuth = localStorage.getItem("admin_auth") === "true";
+  const profileQ = useGetMyProfile();
+  const profile = profileQ.data;
 
   useEffect(() => {
-    if (!adminAuth) {
-      window.location.href = "/admin/login";
+    if (!profileQ.isLoading && profile?.role !== "admin") {
+      window.location.href = "/";
     }
-  }, []);
+  }, [profileQ.isLoading, profile]);
 
-  if (!adminAuth) return null;
+  if (profileQ.isLoading) {
+    return (
+      <Layout>
+        <div className="mx-auto max-w-7xl px-4 py-10 lg:px-8 space-y-4">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (profile?.role !== "admin") return null;
 
   function handleLogout() {
-    localStorage.removeItem("admin_auth");
-    localStorage.removeItem("auth_token");
-    window.location.href = "/admin/login";
+    window.location.href = "/logout";
   }
 
   return (
