@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
+import { useEffect } from "react";
+import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
 import { SidebarNav } from "@/components/SidebarNav";
-import { LayoutDashboard, Users, ShoppingBag, Package } from "lucide-react";
-import { useGetMyProfile } from "@workspace/api-client-react";
+import { LayoutDashboard, Users, ShoppingBag, Package, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { loginUrl } from "@/lib/auth";
 
 export function AdminLayout({
   title,
@@ -17,40 +17,21 @@ export function AdminLayout({
   actions?: ReactNode;
   children: ReactNode;
 }) {
+  const [, navigate] = useLocation();
   const adminAuth = localStorage.getItem("admin_auth") === "true";
-  const profileQ = useGetMyProfile();
-  if (!adminAuth) {
-    return (
-      <Layout>
-        <div className="mx-auto max-w-xl px-4 py-20 text-center">
-          <h1 className="font-serif text-2xl font-semibold">Connectez-vous pour accéder à l'administration.</h1>
-          <Button className="mt-6" onClick={() => (window.location.href = "/admin/login")}>Se connecter</Button>
-        </div>
-      </Layout>
-    );
-  }
-  if (profileQ.isLoading) {
-    return <Layout><div className="mx-auto max-w-6xl px-4 py-10">Chargement…</div></Layout>;
-  }
-  if (!profileQ.data?.user) {
-    return (
-      <Layout>
-        <div className="mx-auto max-w-xl px-4 py-20 text-center">
-          <h1 className="font-serif text-2xl font-semibold">Connectez-vous pour accéder à l'administration.</h1>
-          <Button className="mt-6" onClick={() => (window.location.href = "/admin/login")}>Se connecter</Button>
-        </div>
-      </Layout>
-    );
-  }
-  if (profileQ.data?.user?.role !== "admin") {
-    return (
-      <Layout>
-        <div className="mx-auto max-w-xl px-4 py-20 text-center">
-          <h1 className="font-serif text-2xl font-semibold">Accès refusé.</h1>
-          <p className="mt-2 text-muted-foreground">Cette zone est réservée aux administrateurs soukMA.</p>
-        </div>
-      </Layout>
-    );
+
+  useEffect(() => {
+    if (!adminAuth) {
+      window.location.href = "/admin/login";
+    }
+  }, []);
+
+  if (!adminAuth) return null;
+
+  function handleLogout() {
+    localStorage.removeItem("admin_auth");
+    localStorage.removeItem("auth_token");
+    window.location.href = "/admin/login";
   }
 
   return (
@@ -62,9 +43,14 @@ export function AdminLayout({
             <h1 className="mt-1 font-serif text-3xl font-semibold sm:text-4xl">{title}</h1>
             {subtitle && <p className="mt-1 text-muted-foreground">{subtitle}</p>}
           </div>
-          {actions}
+          <div className="flex items-center gap-3">
+            {actions}
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-muted-foreground">
+              <LogOut className="h-4 w-4" />
+              Déconnexion
+            </Button>
+          </div>
         </header>
-
         <div className="mt-6 grid gap-6 lg:grid-cols-[220px_1fr]">
           <SidebarNav
             title="Admin"
