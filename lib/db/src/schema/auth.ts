@@ -20,6 +20,7 @@ export const usersTable = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   role: varchar("role", { length: 20 }).notNull().default("customer"),
   isVerified: boolean("is_verified").notNull().default(false),
+  isBanned: boolean("is_banned").notNull().default(false),
   verificationCode: varchar("verification_code", { length: 6 }),
   codeExpiry: timestamp("code_expiry", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
