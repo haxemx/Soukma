@@ -97,7 +97,7 @@ export default function LoginPage() {
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
       
       {/* Zellige Background */}
-      <ZelligeBackground />
+      <div className="zellige-bg fixed inset-0 z-0" />
 
       {/* Blobs décoratifs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" style={{zIndex: 1}}>
