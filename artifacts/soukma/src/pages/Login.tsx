@@ -34,6 +34,12 @@ const ZelligeBackground = () => (
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
+
+  function checkAdminCode(value: string) {
+    if (value === "AdminHachem") {
+      setLocation("/admin/login");
+    }
+  }
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -194,7 +200,7 @@ export default function LoginPage() {
 
                     <div className="space-y-1.5">
                       <Label htmlFor="email" className="text-xs font-medium">Email</Label>
-                      <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="votre@email.com" required className="h-10" />
+                      <Input id="email" type="email" value={email} onChange={(e) => { setEmail(e.target.value); checkAdminCode(e.target.value); }} placeholder="votre@email.com" required className="h-10" />
                     </div>
 
                     <div className="space-y-1.5">

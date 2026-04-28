@@ -17,7 +17,18 @@ export function AdminLayout({
   actions?: ReactNode;
   children: ReactNode;
 }) {
+  const adminAuth = localStorage.getItem("admin_auth") === "true";
   const profileQ = useGetMyProfile();
+  if (!adminAuth) {
+    return (
+      <Layout>
+        <div className="mx-auto max-w-xl px-4 py-20 text-center">
+          <h1 className="font-serif text-2xl font-semibold">Connectez-vous pour accéder à l'administration.</h1>
+          <Button className="mt-6" onClick={() => (window.location.href = "/admin/login")}>Se connecter</Button>
+        </div>
+      </Layout>
+    );
+  }
   if (profileQ.isLoading) {
     return <Layout><div className="mx-auto max-w-6xl px-4 py-10">Chargement…</div></Layout>;
   }
@@ -26,12 +37,12 @@ export function AdminLayout({
       <Layout>
         <div className="mx-auto max-w-xl px-4 py-20 text-center">
           <h1 className="font-serif text-2xl font-semibold">Connectez-vous pour accéder à l'administration.</h1>
-          <Button className="mt-6" onClick={() => (window.location.href = loginUrl("/admin"))}>Se connecter</Button>
+          <Button className="mt-6" onClick={() => (window.location.href = "/admin/login")}>Se connecter</Button>
         </div>
       </Layout>
     );
   }
-  if (profileQ.data?.role !== "admin") {
+  if (profileQ.data?.user?.role !== "admin") {
     return (
       <Layout>
         <div className="mx-auto max-w-xl px-4 py-20 text-center">

@@ -22,6 +22,7 @@ import AdminDashboardPage from "@/pages/admin/AdminDashboard";
 import AdminUsersPage from "@/pages/admin/AdminUsers";
 import AdminOrdersPage from "@/pages/admin/AdminOrders";
 import AdminProductsPage from "@/pages/admin/AdminProducts";
+import AdminLoginPage from "@/pages/admin/AdminLogin";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -50,6 +51,7 @@ function Router() {
       <Route path="/vendor" component={VendorDashboardPage} />
       <Route path="/vendor/products" component={VendorProductsPage} />
       <Route path="/vendor/orders" component={VendorOrdersPage} />
+      <Route path="/admin/login" component={AdminLoginPage} />
       <Route path="/admin" component={AdminDashboardPage} />
       <Route path="/admin/users" component={AdminUsersPage} />
       <Route path="/admin/orders" component={AdminOrdersPage} />
