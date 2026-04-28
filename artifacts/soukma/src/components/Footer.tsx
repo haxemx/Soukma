@@ -114,8 +114,8 @@ export function Footer() {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
             <p className="mb-4 text-sm font-semibold uppercase tracking-wider">À propos</p>
             <ul className="space-y-2 text-sm text-sidebar-foreground/70">
-              <li>soukMA — SARL au capital de 100 000 MAD</li>
-              <li>Siège : Casablanca, Maroc</li>
+              <li>soukMA — SARL</li>
+              <li>Siège : Casablanca/rabat, Maroc</li>
               <li className="hover:text-primary transition-colors cursor-pointer">contact@soukma.ma</li>
             </ul>
             {/* Newsletter */}
