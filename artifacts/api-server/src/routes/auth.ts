@@ -42,7 +42,7 @@ router.post("/auth/verify", async (req: Request, res: Response) => {
   await db.update(usersTable).set({ isVerified: true, verificationCode: null }).where(eq(usersTable.email, email));
   const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
-  res.json({ token, user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, profileImageUrl: user.profileImageUrl } });
+  res.json({ token, user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, profileImageUrl: user.profileImageUrl, role: user.role } });
 });
 
 // ─── POST /auth/resend-code ────────────────────────────────────────────────
@@ -75,7 +75,7 @@ router.post("/auth/login", async (req: Request, res: Response) => {
   if (!valid) { res.status(401).json({ error: "Email ou mot de passe incorrect" }); return; }
 
   const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
-  res.json({ token, user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, profileImageUrl: user.profileImageUrl } });
+  res.json({ token, user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, profileImageUrl: user.profileImageUrl, role: user.role } });
 });
 
 router.post("/auth/logout", (_req: Request, res: Response) => { res.json({ success: true }); });
