@@ -23,9 +23,6 @@ export default function ProductsPage() {
 
   const [q, setQ] = useState(params.get("search") ?? "");
   const [searchHistory, setSearchHistory] = useState<string[]>(() => JSON.parse(localStorage.getItem("soukma_search_history") ?? "[]"));
-  useEffect(() => {
-    setSearchHistory(JSON.parse(localStorage.getItem("soukma_search_history") ?? "[]"));
-  }, []);
   function saveSearch(term: string) {
     if (!term.trim()) return;
     const updated = [term, ...searchHistory.filter(h => h !== term)].slice(0, 5);
