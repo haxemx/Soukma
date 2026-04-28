@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
       if (data.user?.role !== "admin") { setError("Accès refusé. Compte non administrateur."); return; }
       localStorage.setItem("admin_auth", "true");
       localStorage.setItem("auth_token", data.token);
-      navigate("/admin");
+      window.location.href = "/admin";
     } catch { setError("Erreur de connexion au serveur"); }
     finally { setLoading(false); }
   }
