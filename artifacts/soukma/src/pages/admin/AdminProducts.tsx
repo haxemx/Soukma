@@ -282,11 +282,6 @@ export default function AdminProductsPage() {
                     </Button>
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                    <Button variant="outline" size="icon" className="h-8 w-8 hover:border-primary hover:text-primary" onClick={() => loadProductViews(p.id, p.title)}>
-                      <Eye className="h-3.5 w-3.5" />
-                    </Button>
-                  </motion.div>
                     <Button variant="outline" size="icon" className="h-8 w-8 hover:border-primary hover:text-primary" onClick={() => openModal(p)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
