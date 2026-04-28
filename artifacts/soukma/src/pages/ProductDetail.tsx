@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import {
   useGetProduct,
@@ -11,7 +11,6 @@ import { ProductImage } from "@/components/ProductImage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { apiBase } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
