@@ -144,7 +144,7 @@ function ProductModal({ product, categories, onClose, onSaved }: {
 }
 
 export default function AdminProductsPage() {
-  const productsQ = useListAllProductsAdmin({}, { query: { staleTime: 0, refetchOnMount: true, refetchInterval: 10_000 } });
+  const productsQ = useListAllProductsAdmin({ query: { staleTime: 0, refetchOnMount: true, refetchInterval: 10_000 } });
   const products = (productsQ.data ?? []) as Product[];
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
