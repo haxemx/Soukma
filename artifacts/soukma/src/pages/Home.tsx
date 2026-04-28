@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { useState, useEffect } from "react";
 import { ArrowRight, Sparkles, TrendingUp, Award } from "lucide-react";
 import {
   useListCategories,
@@ -10,6 +11,37 @@ import { ZelligeBackground } from "@/components/ZelligeBackground";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+
+
+function RecentlyViewed() {
+  const [items, setItems] = useState<any[]>([]);
+  useEffect(() => {
+    const data = JSON.parse(localStorage.getItem("soukma_recently_viewed") ?? "[]");
+    setItems(data);
+  }, []);
+  if (!items.length) return null;
+  return (
+    <section className="py-12 px-4 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-primary mb-1">Historique</p>
+          <h2 className="text-2xl font-bold">Récemment consultés</h2>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        {items.map(p => (
+          <Link key={p.id} href={`/products/${p.id}`} className="group block rounded-xl border border-card-border bg-card p-3 hover:shadow-md transition-all">
+            <div className="aspect-square rounded-lg bg-muted mb-2 overflow-hidden">
+              {p.imageUrl ? <img src={p.imageUrl} alt={p.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform" /> : <div className="h-full w-full flex items-center justify-center text-2xl">📦</div>}
+            </div>
+            <p className="text-xs font-medium truncate">{p.title}</p>
+            <p className="text-xs text-primary font-semibold mt-1">{p.price?.toLocaleString("fr-FR")} MAD</p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function HomePage() {
   const featuredQ = useListFeaturedProducts();
@@ -81,6 +113,7 @@ export default function HomePage() {
       </Section>
 
       <VendorCTA />
+      <RecentlyViewed />
     </Layout>
   );
 }
