@@ -11,6 +11,9 @@ import { ProductImage } from "@/components/ProductImage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect } from "react";
+import { ProductCard } from "@/components/ProductCard";
+import { apiBase } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { formatMAD } from "@/lib/format";
 import { loginUrl } from "@/lib/auth";
@@ -24,6 +27,21 @@ import {
   Minus,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+
+function SimilarProducts({ productId }: { productId: string }) {
+  const [items, setItems] = useState<any[]>([]);
+  useEffect(() => {
+    fetch(`${apiBase}/products/${productId}/similar`)
+      .then(r => r.json()).then(setItems).catch(() => {});
+  }, [productId]);
+  if (!items.length) return null;
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      {items.map(p => <ProductCard key={p.id} product={p} />)}
+    </div>
+  );
+}
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -234,6 +252,10 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
+    <div className="mx-auto max-w-7xl px-4 pb-16">
+      <h2 className="text-xl font-semibold mb-6">Produits similaires</h2>
+      <SimilarProducts productId={id} />
+    </div>
     </Layout>
   );
 }
