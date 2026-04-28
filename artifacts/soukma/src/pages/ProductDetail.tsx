@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import {
   useGetProduct,
@@ -11,7 +11,6 @@ import { ProductImage } from "@/components/ProductImage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { apiBase } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -107,18 +106,6 @@ export default function ProductDetailPage() {
   }
 
   const p = productQ.data;
-
-  // Save to recently viewed
-  useEffect(() => {
-    if (!p) return;
-    const key = "soukma_recently_viewed";
-    const prev = JSON.parse(localStorage.getItem(key) ?? "[]");
-    const updated = [
-      { id: p.id, title: p.title, price: p.price, imageUrl: p.imageUrl, categoryName: p.categoryName },
-      ...prev.filter((x: any) => x.id !== p.id)
-    ].slice(0, 6);
-    localStorage.setItem(key, JSON.stringify(updated));
-  }, [p?.id]);
 
   const discount = p.compareAtPrice && p.compareAtPrice > p.price
     ? Math.round(100 - (p.price / p.compareAtPrice) * 100)
