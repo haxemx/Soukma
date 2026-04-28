@@ -1,3 +1,4 @@
+import { productViews as productViewsTable } from "@workspace/db/schema";
 import { Router, type IRouter } from "express";
 import {
   db,
@@ -42,6 +43,7 @@ const baseSelect = {
   imageUrl: productsTable.imageUrl,
   rating: productsTable.rating,
   reviewCount: productsTable.reviewCount,
+  viewCount: productsTable.viewCount,
   isFeatured: productsTable.isFeatured,
   createdAt: productsTable.createdAt,
 };
@@ -64,6 +66,7 @@ function serializeProduct(row: any) {
     imageUrl: row.imageUrl,
     rating: Number(row.rating),
     reviewCount: row.reviewCount,
+    viewCount: row.viewCount,
     isFeatured: row.isFeatured,
     createdAt: row.createdAt.toISOString(),
   };
@@ -340,6 +343,68 @@ router.patch("/admin/users/:id/ban", async (req, res) => {
   const [user] = await db.update(usersTable).set({ isBanned: banned }).where(eq(usersTable.id, id)).returning();
   if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
   res.json({ success: true, isBanned: user.isBanned });
+});
+
+export default router;
+
+// ─── GET /admin/products/:id/views ─────────────────────────────────────────
+router.get("/admin/products/:id/views", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const admin = await requireAdmin(req);
+  if (!admin) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const { id } = req.params;
+
+  const views = await db
+    .select({
+      userId: usersTable.id,
+      email: usersTable.email,
+      firstName: usersTable.firstName,
+      lastName: usersTable.lastName,
+      viewedAt: productViewsTable.viewedAt,
+    })
+    .from(productViewsTable)
+    .innerJoin(usersTable, eq(productViewsTable.userId, usersTable.id))
+    .where(eq(productViewsTable.productId, id))
+    .orderBy(desc(productViewsTable.viewedAt));
+
+  res.json(views);
+});
+
+// ─── GET /admin/products/:id/views ─────────────────────────────────────────
+router.get("/admin/products/:id/views", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const admin = await requireAdmin(req);
+  if (!admin) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const { id } = req.params;
+
+  const views = await db
+    .select({
+      userId: usersTable.id,
+      email: usersTable.email,
+      firstName: usersTable.firstName,
+      lastName: usersTable.lastName,
+      viewedAt: productViewsTable.viewedAt,
+    })
+    .from(productViewsTable)
+    .innerJoin(usersTable, eq(productViewsTable.userId, usersTable.id))
+    .where(eq(productViewsTable.productId, id))
+    .orderBy(desc(productViewsTable.viewedAt));
+
+  res.json(views);
 });
 
 export default router;

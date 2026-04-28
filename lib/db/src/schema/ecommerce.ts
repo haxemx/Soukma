@@ -59,6 +59,7 @@ export const productsTable = pgTable(
     images: text("images").array().notNull().default(sql`ARRAY[]::text[]`),
     rating: numeric("rating", { precision: 3, scale: 2 }).notNull().default("0"),
     reviewCount: integer("review_count").notNull().default(0),
+  viewCount: integer("view_count").notNull().default(0),
     isFeatured: boolean("is_featured").notNull().default(false),
     salesCount: integer("sales_count").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -174,3 +175,18 @@ export type Cart = typeof cartsTable.$inferSelect;
 export type CartItem = typeof cartItemsTable.$inferSelect;
 export type Order = typeof ordersTable.$inferSelect;
 export type OrderItem = typeof orderItemsTable.$inferSelect;
+
+export const productViewsTable = pgTable(
+  "product_views",
+  {
+    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+    productId: varchar("product_id").notNull().references(() => productsTable.id, { onDelete: "cascade" }),
+    userId: varchar("user_id").references(() => usersTable.id, { onDelete: "set null" }),
+    sessionId: text("session_id"),
+    viewedAt: timestamp("viewed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("idx_product_views_product").on(table.productId),
+    index("idx_product_views_user").on(table.userId),
+  ],
+);

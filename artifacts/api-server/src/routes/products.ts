@@ -7,6 +7,7 @@ import {
   vendorsTable,
   productSpecsTable,
 } from "@workspace/db";
+import { productViewsTable } from "@workspace/db/schema";
 import { and, asc, desc, eq, ilike, gte, lte, sql, or } from "drizzle-orm";
 
 const router: IRouter = Router();
@@ -27,6 +28,7 @@ function serializeProduct(row: {
   imageUrl: string | null;
   rating: string;
   reviewCount: number;
+  viewCount: number;
   isFeatured: boolean;
   createdAt: Date;
 }) {
@@ -42,12 +44,11 @@ function serializeProduct(row: {
     categorySlug: row.categorySlug ?? "",
     categoryName: row.categoryName,
     vendorId: row.vendorId,
-    // REMPLACER ICI: vendor name fallback if no vendor associated
     vendorName: row.vendorName ?? "soukMA Officiel",
-    // REMPLACER ICI: image URL is stored in DB; update via vendor dashboard or seed
     imageUrl: row.imageUrl,
     rating: Number(row.rating),
     reviewCount: row.reviewCount,
+    viewCount: row.viewCount,
     isFeatured: row.isFeatured,
     createdAt: row.createdAt.toISOString(),
   };
@@ -69,6 +70,7 @@ const baseSelect = {
   imageUrl: productsTable.imageUrl,
   rating: productsTable.rating,
   reviewCount: productsTable.reviewCount,
+  viewCount: productsTable.viewCount,
   isFeatured: productsTable.isFeatured,
   createdAt: productsTable.createdAt,
 };
@@ -175,6 +177,21 @@ router.get("/products/:id", async (req, res) => {
     return;
   }
 
+  // Incrémenter le compteur de vues
+  await db
+    .update(productsTable)
+    .set({ viewCount: sql`${productsTable.viewCount} + 1` })
+    .where(eq(productsTable.id, parsed.data.id));
+
+  // Enregistrer la vue si l'utilisateur est connecté
+  if (req.user?.id) {
+    await db.insert(productViewsTable).values({
+      productId: parsed.data.id,
+      userId: req.user.id,
+      viewedAt: new Date(),
+    });
+  }
+
   const specs = await db
     .select({ label: productSpecsTable.label, value: productSpecsTable.value })
     .from(productSpecsTable)
@@ -191,7 +208,6 @@ router.get("/products/:id", async (req, res) => {
 
   res.json({
     ...serializeProduct(row),
-    // REMPLACER ICI: galerie d'images du produit (tableau d'URLs).
     images,
     specs,
   });

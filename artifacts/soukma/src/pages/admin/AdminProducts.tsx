@@ -10,13 +10,14 @@ import { Label } from "@/components/ui/label";
 import { ProductImage } from "@/components/ProductImage";
 import { formatMAD } from "@/lib/format";
 import { apiBase } from "@/lib/api";
-import { Plus, Pencil, Trash2, X, Star, Package, TrendingDown, Tag } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Star, Package, TrendingDown, Tag, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type Product = {
   id: string; title: string; description?: string; price: number;
   compareAtPrice?: number; stock: number; categoryId: string;
   categoryName?: string; imageUrl?: string; isFeatured: boolean;
-  vendorName?: string; rating: number;
+  vendorName?: string; rating: number; viewCount?: number;
 };
 
 type Category = { id: string; name: string; slug: string; };
@@ -122,7 +123,6 @@ function ProductModal({ product, categories, onClose, onSaved }: {
             </div>
           </div>
 
-          {/* Preview image */}
           {form.imageUrl && (
             <div className="rounded-xl border border-border overflow-hidden h-32 w-32">
               <img src={form.imageUrl} alt="preview" className="h-full w-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
@@ -151,6 +151,9 @@ export default function AdminProductsPage() {
   const [modal, setModal] = useState<{ open: boolean; product?: Product }>({ open: false });
   const [deleting, setDeleting] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "featured" | "low-stock" | "promo">("all");
+  const [viewsModal, setViewsModal] = useState<{ open: boolean; productId: string | null; productName: string }>({ open: false, productId: null, productName: "" });
+  const [viewers, setViewers] = useState<any[]>([]);
+  const [loadingViewers, setLoadingViewers] = useState(false);
 
   async function loadCategories() {
     const token = localStorage.getItem("auth_token");
@@ -161,6 +164,22 @@ export default function AdminProductsPage() {
   async function openModal(product?: Product) {
     await loadCategories();
     setModal({ open: true, product });
+  }
+
+  async function loadProductViews(productId: string, productName: string) {
+    setViewsModal({ open: true, productId, productName });
+    setLoadingViewers(true);
+    try {
+      const token = localStorage.getItem("auth_token");
+      const res = await fetch(`${apiBase}/admin/products/${productId}/views`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setViewers(data);
+      } else setViewers([]);
+    } catch { setViewers([]); }
+    finally { setLoadingViewers(false); }
   }
 
   async function handleDelete(id: string) {
@@ -193,9 +212,9 @@ export default function AdminProductsPage() {
 
   return (
     <AdminLayout title="Produits" subtitle="Gérez tous les produits de soukMA.">
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 mb-6 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 mb-6 lg:grid-cols-5">
         {[
+          { label: "Vues totales", value: products.reduce((a, p) => a + (p.viewCount ?? 0), 0), icon: Eye, color: "text-purple-500", key: "all-views" },
           { label: "Total", value: stats.total, icon: Package, color: "text-blue-500", key: "all" },
           { label: "Coup de cœur", value: stats.featured, icon: Star, color: "text-yellow-500", key: "featured" },
           { label: "Stock faible", value: stats.lowStock, icon: TrendingDown, color: "text-red-500", key: "low-stock" },
@@ -214,7 +233,6 @@ export default function AdminProductsPage() {
         ))}
       </div>
 
-      {/* Toolbar */}
       <div className="flex gap-3 mb-4">
         <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un produit..." className="flex-1" />
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -224,7 +242,6 @@ export default function AdminProductsPage() {
         </motion.div>
       </div>
 
-      {/* List */}
       {productsQ.isLoading ? (
         <div className="space-y-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
       ) : filtered.length === 0 ? (
@@ -260,6 +277,16 @@ export default function AdminProductsPage() {
                 </div>
                 <div className="flex gap-2">
                   <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                    <Button variant="outline" size="icon" className="h-8 w-8 hover:border-primary hover:text-primary" onClick={() => loadProductViews(p.id, p.title)}>
+                      <Eye className="h-3.5 w-3.5" />
+                    </Button>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                    <Button variant="outline" size="icon" className="h-8 w-8 hover:border-primary hover:text-primary" onClick={() => loadProductViews(p.id, p.title)}>
+                      <Eye className="h-3.5 w-3.5" />
+                    </Button>
+                  </motion.div>
                     <Button variant="outline" size="icon" className="h-8 w-8 hover:border-primary hover:text-primary" onClick={() => openModal(p)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
@@ -277,7 +304,6 @@ export default function AdminProductsPage() {
         </motion.ul>
       )}
 
-      {/* Modal */}
       <AnimatePresence>
         {modal.open && (
           <ProductModal
@@ -288,6 +314,33 @@ export default function AdminProductsPage() {
           />
         )}
       </AnimatePresence>
+
+      <Dialog open={viewsModal.open} onOpenChange={(open) => !open && setViewsModal({ open: false, productId: null, productName: "" })}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Utilisateurs ayant vu « {viewsModal.productName} »</DialogTitle>
+          </DialogHeader>
+          {loadingViewers ? (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+            </div>
+          ) : viewers.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Aucun utilisateur connecté n'a consulté ce produit.</p>
+          ) : (
+            <div className="max-h-[60vh] overflow-y-auto space-y-2">
+              {viewers.map((viewer) => (
+                <div key={viewer.userId} className="flex justify-between items-center border-b pb-2">
+                  <div>
+                    <p className="font-medium">{viewer.firstName} {viewer.lastName}</p>
+                    <p className="text-xs text-muted-foreground">{viewer.email}</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{new Date(viewer.viewedAt).toLocaleString()}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
