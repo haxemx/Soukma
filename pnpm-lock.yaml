@@ -30,6 +30,9 @@ importers:
 
   artifacts/api-server:
     dependencies:
+      '@types/nodemailer':
+        specifier: ^8.0.0
+        version: 8.0.0
       '@workspace/api-zod':
         specifier: workspace:*
         version: link:../../lib/api-zod
@@ -54,6 +57,9 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
+      nodemailer:
+        specifier: ^8.0.6
+        version: 8.0.6
       openid-client:
         specifier: ^6.8.3
         version: 6.8.3
