@@ -165,7 +165,7 @@ router.get("/products/:id/similar", async (req, res) => {
   const items = await db.select(baseSelect).from(productsTable)
     .innerJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
     .leftJoin(vendorsTable, eq(productsTable.vendorId, vendorsTable.id))
-    .where(and(eq(productsTable.categoryId, product[0].categoryId), sql` != `))
+    .where(and(eq(productsTable.categoryId, product[0].categoryId), sql`${productsTable.id} != ${id}`))
     .orderBy(desc(productsTable.viewCount)).limit(4);
   res.json(items.map(serializeProduct));
 });
