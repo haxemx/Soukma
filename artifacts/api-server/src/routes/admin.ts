@@ -217,7 +217,6 @@ router.get("/admin/products", async (req, res) => {
   res.json(items.map(serializeProduct));
 });
 
-export default router;
 
 // ─── POST /admin/products ──────────────────────────────────────────────────
 router.post("/admin/products", async (req, res) => {
@@ -342,3 +341,5 @@ router.patch("/admin/users/:id/ban", async (req, res) => {
   if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
   res.json({ success: true, isBanned: user.isBanned });
 });
+
+export default router;
