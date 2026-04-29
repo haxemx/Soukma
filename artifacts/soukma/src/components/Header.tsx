@@ -20,61 +20,65 @@ const NAV = [
 ];
 
 function MoroccanLantern({ color, delay, x }: { color: string; delay: number; x: number }) {
-  const dark = color;
   return (
     <motion.div
       style={{ position: "absolute", top: 0, left: x, transformOrigin: "top center", pointerEvents: "none", zIndex: 0 }}
-      animate={{ rotate: [-8, 8, -8] }}
+      animate={{ rotate: [-7, 7, -7] }}
       transition={{ duration: 3.5 + delay, repeat: Infinity, ease: "easeInOut", delay }}
     >
-      <svg width="28" height="62" viewBox="0 0 28 62" fill="none" xmlns="http://www.w3.org/2000/svg">
-        {/* Fil */}
-        <line x1="14" y1="0" x2="14" y2="9" stroke="#6b7280" strokeWidth="1.2"/>
-        {/* Anneau haut */}
-        <ellipse cx="14" cy="9" rx="5" ry="2.5" fill="#374151"/>
-        <ellipse cx="14" cy="9" rx="4" ry="1.8" fill="#4b5563"/>
-        {/* Corps principal - forme ovoïde marocaine */}
-        <path d="M14 11 C8 11 5 16 5 24 C5 34 8 42 14 44 C20 42 23 34 23 24 C23 16 20 11 14 11 Z" fill={dark} fillOpacity="0.9"/>
-        {/* Reflet lumineux intérieur */}
-        <path d="M14 11 C8 11 5 16 5 24 C5 34 8 42 14 44 C20 42 23 34 23 24 C23 16 20 11 14 11 Z" fill="white" fillOpacity="0.08"/>
-        {/* Motifs géométriques marocains - étoile */}
-        <path d="M14 17 L15.5 21 L20 21 L16.5 23.5 L18 27.5 L14 25 L10 27.5 L11.5 23.5 L8 21 L12.5 21 Z" fill="white" fillOpacity="0.25"/>
-        {/* Arcs décoratifs arabesques */}
-        <path d="M7 22 Q14 18 21 22" stroke="white" strokeWidth="0.6" fill="none" opacity="0.3"/>
-        <path d="M6 28 Q14 24 22 28" stroke="white" strokeWidth="0.6" fill="none" opacity="0.3"/>
-        <path d="M7 34 Q14 30 21 34" stroke="white" strokeWidth="0.6" fill="none" opacity="0.3"/>
-        {/* Fenêtres découpées style mashrabiya */}
-        <rect x="11" y="20" width="2" height="3" rx="1" fill="white" fillOpacity="0.35"/>
-        <rect x="15" y="20" width="2" height="3" rx="1" fill="white" fillOpacity="0.35"/>
-        <rect x="11" y="30" width="2" height="3" rx="1" fill="white" fillOpacity="0.35"/>
-        <rect x="15" y="30" width="2" height="3" rx="1" fill="white" fillOpacity="0.35"/>
-        {/* Anneau bas */}
-        <ellipse cx="14" cy="44" rx="5" ry="2.5" fill="#374151"/>
-        <ellipse cx="14" cy="44" rx="4" ry="1.8" fill="#4b5563"/>
-        {/* Pendeloque bas */}
-        <path d="M11 44 L14 52 L17 44" fill={dark} fillOpacity="0.7"/>
-        <ellipse cx="14" cy="52" rx="2" ry="3" fill={dark} fillOpacity="0.6"/>
-        <circle cx="14" cy="55" r="1.5" fill={dark} fillOpacity="0.4"/>
-        {/* Lueur interne */}
-        <ellipse cx="14" cy="27" rx="4" ry="6" fill="white" fillOpacity="0.12"/>
+      <svg width="32" height="70" viewBox="0 0 32 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Crochet/anneau de suspension */}
+        <path d="M16 0 Q20 0 20 4 Q20 7 16 7 Q12 7 12 4 Q12 0 16 0 Z" stroke="#92400e" strokeWidth="1.2" fill="none"/>
+        <line x1="16" y1="7" x2="16" y2="11" stroke="#92400e" strokeWidth="1.5"/>
+        {/* Couronne haut - style marocain avec pointe */}
+        <path d="M10 11 L12 9 L14 11 L16 8 L18 11 L20 9 L22 11 L22 15 L10 15 Z" fill={color}/>
+        <path d="M10 15 L22 15 L23 18 L9 18 Z" fill={color} fillOpacity="0.8"/>
+        {/* Corps octogonal */}
+        <path d="M9 18 L8 22 L8 42 L9 46 L23 46 L24 42 L24 22 L23 18 Z" fill={color} fillOpacity="0.15" stroke={color} strokeWidth="1"/>
+        {/* Panneaux de verre colorés */}
+        <path d="M10 20 L10 44 L16 44 L16 20 Z" fill={color} fillOpacity="0.4"/>
+        <path d="M16 20 L16 44 L22 44 L22 20 Z" fill={color} fillOpacity="0.3"/>
+        {/* Motifs arabesque fer forgé - rosace centrale */}
+        <circle cx="16" cy="32" r="5" stroke={color} strokeWidth="1" fill="none" fillOpacity="0"/>
+        <circle cx="16" cy="32" r="3" stroke={color} strokeWidth="0.8" fill={color} fillOpacity="0.3"/>
+        {/* Étoile à 8 branches marocaine */}
+        <path d="M16 26 L17 29 L20 29 L18 31 L19 34 L16 32 L13 34 L14 31 L12 29 L15 29 Z" fill={color} fillOpacity="0.7"/>
+        {/* Grille arabesque */}
+        <path d="M9 22 L23 22" stroke={color} strokeWidth="0.5" opacity="0.6"/>
+        <path d="M9 27 L23 27" stroke={color} strokeWidth="0.5" opacity="0.6"/>
+        <path d="M9 37 L23 37" stroke={color} strokeWidth="0.5" opacity="0.6"/>
+        <path d="M9 42 L23 42" stroke={color} strokeWidth="0.5" opacity="0.6"/>
+        <line x1="13" y1="20" x2="13" y2="44" stroke={color} strokeWidth="0.5" opacity="0.6"/>
+        <line x1="19" y1="20" x2="19" y2="44" stroke={color} strokeWidth="0.5" opacity="0.6"/>
+        {/* Arcs décoratifs */}
+        <path d="M10 22 Q13 20 16 22 Q19 20 22 22" stroke={color} strokeWidth="0.7" fill="none"/>
+        <path d="M10 42 Q13 44 16 42 Q19 44 22 42" stroke={color} strokeWidth="0.7" fill="none"/>
+        {/* Socle bas */}
+        <path d="M9 46 L23 46 L22 50 L10 50 Z" fill={color} fillOpacity="0.8"/>
+        <path d="M10 50 L12 48 L14 50 L16 47 L18 50 L20 48 L22 50" stroke={color} strokeWidth="0.8" fill="none"/>
+        {/* Pendeloque */}
+        <line x1="16" y1="50" x2="16" y2="56" stroke="#92400e" strokeWidth="1"/>
+        <ellipse cx="16" cy="58" rx="3" ry="4" fill={color} fillOpacity="0.8"/>
+        <ellipse cx="16" cy="62" rx="2" ry="2.5" fill={color} fillOpacity="0.5"/>
+        <circle cx="16" cy="65" r="1.5" fill={color} fillOpacity="0.4"/>
+        {/* Lueur interne flamme */}
+        <ellipse cx="16" cy="32" rx="3.5" ry="5" fill="#fef08a" fillOpacity="0.2"/>
       </svg>
     </motion.div>
   );
 }
 
+
 const LANTERNS = [
-  { color: "#dc2626", delay: 0,   x: 12  },
-  { color: "#7c3aed", delay: 0.7, x: 38  },
-  { color: "#059669", delay: 1.3, x: 64  },
-  { color: "#d97706", delay: 0.4, x: 90  },
-  { color: "#dc2626", delay: 1.0, x: 116 },
-  { color: "#7c3aed", delay: 0.2, x: 142 },
-  { color: "#059669", delay: 1.6, x: 168 },
-  { color: "#d97706", delay: 0.9, x: 194 },
-  { color: "#dc2626", delay: 0.5, x: 220 },
-  { color: "#7c3aed", delay: 1.2, x: 246 },
-  { color: "#059669", delay: 0.3, x: 272 },
-  { color: "#d97706", delay: 1.5, x: 298 },
+  { color: "#b45309", delay: 0,   x: -320 },
+  { color: "#dc2626", delay: 0.5, x: -284 },
+  { color: "#7c3aed", delay: 1.0, x: -248 },
+  { color: "#b45309", delay: 0.3, x: -212 },
+  { color: "#059669", delay: 1.4, x: -176 },
+  { color: "#dc2626", delay: 0.8, x: -140 },
+  { color: "#7c3aed", delay: 0.2, x: -104 },
+  { color: "#b45309", delay: 1.2, x: -68  },
+  { color: "#059669", delay: 0.6, x: -32  },
 ];
 
 export function Header() {
@@ -114,10 +118,13 @@ export function Header() {
       <div className="moroccan-gradient h-1 w-full" />
 
       {/* Lanternes marocaines */}
-      <div style={{ position: "relative", height: "38px", overflow: "visible", pointerEvents: "none", marginBottom: "-24px" }}>
-        {LANTERNS.map((l, i) => (
-          <MoroccanLantern key={i} color={l.color} delay={l.delay} x={l.x} />
-        ))}
+      <div style={{ position: "relative", height: "34px", overflow: "visible", pointerEvents: "none", marginBottom: "-20px" }}>
+        <div style={{ position: "absolute", right: 0, top: 0, width: "320px" }}>
+          {LANTERNS.map((l, i) => (
+            <MoroccanLantern key={i} color={l.color} delay={l.delay} x={320 + l.x} />
+          ))}
+        </div>
+      </div>
       </div>
 
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 lg:px-8">
