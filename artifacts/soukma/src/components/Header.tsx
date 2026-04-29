@@ -20,25 +20,43 @@ const NAV = [
 ];
 
 function MoroccanLantern({ color, delay, x }: { color: string; delay: number; x: number }) {
+  const dark = color;
   return (
     <motion.div
       style={{ position: "absolute", top: 0, left: x, transformOrigin: "top center", pointerEvents: "none", zIndex: 0 }}
-      animate={{ rotate: [-6, 6, -6] }}
-      transition={{ duration: 3 + delay, repeat: Infinity, ease: "easeInOut", delay }}
+      animate={{ rotate: [-8, 8, -8] }}
+      transition={{ duration: 3.5 + delay, repeat: Infinity, ease: "easeInOut", delay }}
     >
-      <svg width="22" height="52" viewBox="0 0 22 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <line x1="11" y1="0" x2="11" y2="8" stroke="#9ca3af" strokeWidth="1"/>
-        <path d="M11 8 L7 10 L5 14 L5 36 L7 40 L11 42 L15 40 L17 36 L17 14 L15 10 Z" fill={color} fillOpacity="0.85"/>
-        <path d="M5 18 L2 20 L2 30 L5 32" stroke={color} strokeWidth="1" fill="none"/>
-        <path d="M17 18 L20 20 L20 30 L17 32" stroke={color} strokeWidth="1" fill="none"/>
-        <ellipse cx="11" cy="10" rx="4" ry="2.5" fill="#4b5563"/>
-        <ellipse cx="11" cy="40" rx="4" ry="2" fill="#4b5563"/>
-        <path d="M7 14 L9 12 L11 14 L13 12 L15 14" stroke="#fff" strokeWidth="0.5" fill="none" opacity="0.4"/>
-        <path d="M6 22 Q11 19 16 22" stroke="#fff" strokeWidth="0.5" fill="none" opacity="0.3"/>
-        <path d="M6 28 Q11 25 16 28" stroke="#fff" strokeWidth="0.5" fill="none" opacity="0.3"/>
-        <ellipse cx="11" cy="26" rx="3" ry="4" fill="#fff" fillOpacity="0.15"/>
-        <path d="M8 38 L11 44 L14 38" fill={color} fillOpacity="0.6"/>
-        <circle cx="11" cy="45" r="1.5" fill={color} fillOpacity="0.5"/>
+      <svg width="28" height="62" viewBox="0 0 28 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Fil */}
+        <line x1="14" y1="0" x2="14" y2="9" stroke="#6b7280" strokeWidth="1.2"/>
+        {/* Anneau haut */}
+        <ellipse cx="14" cy="9" rx="5" ry="2.5" fill="#374151"/>
+        <ellipse cx="14" cy="9" rx="4" ry="1.8" fill="#4b5563"/>
+        {/* Corps principal - forme ovoïde marocaine */}
+        <path d="M14 11 C8 11 5 16 5 24 C5 34 8 42 14 44 C20 42 23 34 23 24 C23 16 20 11 14 11 Z" fill={dark} fillOpacity="0.9"/>
+        {/* Reflet lumineux intérieur */}
+        <path d="M14 11 C8 11 5 16 5 24 C5 34 8 42 14 44 C20 42 23 34 23 24 C23 16 20 11 14 11 Z" fill="white" fillOpacity="0.08"/>
+        {/* Motifs géométriques marocains - étoile */}
+        <path d="M14 17 L15.5 21 L20 21 L16.5 23.5 L18 27.5 L14 25 L10 27.5 L11.5 23.5 L8 21 L12.5 21 Z" fill="white" fillOpacity="0.25"/>
+        {/* Arcs décoratifs arabesques */}
+        <path d="M7 22 Q14 18 21 22" stroke="white" strokeWidth="0.6" fill="none" opacity="0.3"/>
+        <path d="M6 28 Q14 24 22 28" stroke="white" strokeWidth="0.6" fill="none" opacity="0.3"/>
+        <path d="M7 34 Q14 30 21 34" stroke="white" strokeWidth="0.6" fill="none" opacity="0.3"/>
+        {/* Fenêtres découpées style mashrabiya */}
+        <rect x="11" y="20" width="2" height="3" rx="1" fill="white" fillOpacity="0.35"/>
+        <rect x="15" y="20" width="2" height="3" rx="1" fill="white" fillOpacity="0.35"/>
+        <rect x="11" y="30" width="2" height="3" rx="1" fill="white" fillOpacity="0.35"/>
+        <rect x="15" y="30" width="2" height="3" rx="1" fill="white" fillOpacity="0.35"/>
+        {/* Anneau bas */}
+        <ellipse cx="14" cy="44" rx="5" ry="2.5" fill="#374151"/>
+        <ellipse cx="14" cy="44" rx="4" ry="1.8" fill="#4b5563"/>
+        {/* Pendeloque bas */}
+        <path d="M11 44 L14 52 L17 44" fill={dark} fillOpacity="0.7"/>
+        <ellipse cx="14" cy="52" rx="2" ry="3" fill={dark} fillOpacity="0.6"/>
+        <circle cx="14" cy="55" r="1.5" fill={dark} fillOpacity="0.4"/>
+        {/* Lueur interne */}
+        <ellipse cx="14" cy="27" rx="4" ry="6" fill="white" fillOpacity="0.12"/>
       </svg>
     </motion.div>
   );
@@ -96,7 +114,7 @@ export function Header() {
       <div className="moroccan-gradient h-1 w-full" />
 
       {/* Lanternes marocaines */}
-      <div style={{ position: "relative", height: "52px", overflow: "hidden", pointerEvents: "none" }}>
+      <div style={{ position: "relative", height: "38px", overflow: "visible", pointerEvents: "none", marginBottom: "-24px" }}>
         {LANTERNS.map((l, i) => (
           <MoroccanLantern key={i} color={l.color} delay={l.delay} x={l.x} />
         ))}
