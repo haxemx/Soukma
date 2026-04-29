@@ -19,6 +19,46 @@ const NAV = [
   { href: "/products?categorySlug=high-tech", label: "High-Tech" },
 ];
 
+function MoroccanLantern({ color, delay, x }: { color: string; delay: number; x: number }) {
+  return (
+    <motion.div
+      style={{ position: "absolute", top: 0, left: x, transformOrigin: "top center", pointerEvents: "none", zIndex: 0 }}
+      animate={{ rotate: [−6, 6, −6] }}
+      transition={{ duration: 3 + delay, repeat: Infinity, ease: "easeInOut", delay }}
+    >
+      <svg width="22" height="52" viewBox="0 0 22 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="11" y1="0" x2="11" y2="8" stroke="#9ca3af" strokeWidth="1"/>
+        <path d="M11 8 L7 10 L5 14 L5 36 L7 40 L11 42 L15 40 L17 36 L17 14 L15 10 Z" fill={color} fillOpacity="0.85"/>
+        <path d="M5 18 L2 20 L2 30 L5 32" stroke={color} strokeWidth="1" fill="none"/>
+        <path d="M17 18 L20 20 L20 30 L17 32" stroke={color} strokeWidth="1" fill="none"/>
+        <ellipse cx="11" cy="10" rx="4" ry="2.5" fill="#4b5563"/>
+        <ellipse cx="11" cy="40" rx="4" ry="2" fill="#4b5563"/>
+        <path d="M7 14 L9 12 L11 14 L13 12 L15 14" stroke="#fff" strokeWidth="0.5" fill="none" opacity="0.4"/>
+        <path d="M6 22 Q11 19 16 22" stroke="#fff" strokeWidth="0.5" fill="none" opacity="0.3"/>
+        <path d="M6 28 Q11 25 16 28" stroke="#fff" strokeWidth="0.5" fill="none" opacity="0.3"/>
+        <ellipse cx="11" cy="26" rx="3" ry="4" fill="#fff" fillOpacity="0.15"/>
+        <path d="M8 38 L11 44 L14 38" fill={color} fillOpacity="0.6"/>
+        <circle cx="11" cy="45" r="1.5" fill={color} fillOpacity="0.5"/>
+      </svg>
+    </motion.div>
+  );
+}
+
+const LANTERNS = [
+  { color: "#dc2626", delay: 0,   x: 12  },
+  { color: "#7c3aed", delay: 0.7, x: 38  },
+  { color: "#059669", delay: 1.3, x: 64  },
+  { color: "#d97706", delay: 0.4, x: 90  },
+  { color: "#dc2626", delay: 1.0, x: 116 },
+  { color: "#7c3aed", delay: 0.2, x: 142 },
+  { color: "#059669", delay: 1.6, x: 168 },
+  { color: "#d97706", delay: 0.9, x: 194 },
+  { color: "#dc2626", delay: 0.5, x: 220 },
+  { color: "#7c3aed", delay: 1.2, x: 246 },
+  { color: "#059669", delay: 0.3, x: 272 },
+  { color: "#d97706", delay: 1.5, x: 298 },
+];
+
 export function Header() {
   const [, setLocation] = useLocation();
   const [location] = useLocation();
@@ -54,6 +94,14 @@ export function Header() {
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
       <div className="moroccan-gradient h-1 w-full" />
+
+      {/* Lanternes marocaines */}
+      <div style={{ position: "relative", height: "52px", overflow: "hidden", pointerEvents: "none" }}>
+        {LANTERNS.map((l, i) => (
+          <MoroccanLantern key={i} color={l.color} delay={l.delay} x={l.x} />
+        ))}
+      </div>
+
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 lg:px-8">
         
         {/* Logo */}
