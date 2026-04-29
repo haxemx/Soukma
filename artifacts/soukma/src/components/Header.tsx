@@ -23,7 +23,7 @@ function MoroccanLantern({ color, delay, x }: { color: string; delay: number; x:
   return (
     <motion.div
       style={{ position: "absolute", top: 0, left: x, transformOrigin: "top center", pointerEvents: "none", zIndex: 0 }}
-      animate={{ rotate: [−6, 6, −6] }}
+      animate={{ rotate: [-6, 6, -6] }}
       transition={{ duration: 3 + delay, repeat: Infinity, ease: "easeInOut", delay }}
     >
       <svg width="22" height="52" viewBox="0 0 22 52" fill="none" xmlns="http://www.w3.org/2000/svg">
